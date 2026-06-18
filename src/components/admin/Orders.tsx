@@ -435,7 +435,7 @@ export const AdminOrders = () => {
       {/* Structured core interactive grid table */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-right border-collapse text-xs">
+          <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
               <tr className="bg-neutral-50/70 border-b border-neutral-100 text-neutral-500 font-bold">
                 <th className="px-6 py-4 text-start">رقم الطلب (ID)</th>
