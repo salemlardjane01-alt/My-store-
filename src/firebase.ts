@@ -1040,8 +1040,11 @@ export const updateOrder = async (id: string, orderData: any) => {
       transaction.set(analyticsRef, analytics);
       const isCancelling = orderData.status === 'cancelled';
       const cancelPayload = isCancelling ? {
-        cancelledAt: serverTimestamp()
-      } : {};
+        cancelledAt: serverTimestamp(),
+        archived: true
+      } : {
+        archived: orderData.archived !== undefined ? orderData.archived : false
+      };
       transaction.update(docRef, {
         ...orderData,
         ...cancelPayload,
@@ -1050,6 +1053,15 @@ export const updateOrder = async (id: string, orderData: any) => {
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${ORDERS_COLLECTION}/${id}`);
+  }
+};
+
+export const deleteOrder = async (id: string) => {
+  try {
+    const docRef = doc(db, ORDERS_COLLECTION, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${ORDERS_COLLECTION}/${id}`);
   }
 };
 

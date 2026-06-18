@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { getOrders, updateOrder } from '../../firebase';
+import { getOrders, updateOrder, deleteOrder } from '../../firebase';
 import { 
   Search, 
   Copy, 
@@ -18,13 +18,17 @@ import {
   ChevronRight,
   Filter,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 
 export const AdminOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  
+  // Tab state (active vs archived)
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +48,9 @@ export const AdminOrders = () => {
   // Cancellation tracking states
   const [cancelModalData, setCancelModalData] = useState<{ orderId: string; oldStatus: string } | null>(null);
   const [chosenReason, setChosenReason] = useState<string>('customer request');
+
+  // Custom delete state
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -74,7 +81,8 @@ export const AdminOrders = () => {
         status: newStatus, 
         analyticsAppliedStatus: newStatus,
         cancellationReason: newStatus === 'cancelled' ? reason : undefined,
-        cancelledAt: newStatus === 'cancelled' ? { seconds: Math.floor(Date.now() / 1000) } : undefined
+        cancelledAt: newStatus === 'cancelled' ? { seconds: Math.floor(Date.now() / 1000) } : undefined,
+        archived: newStatus === 'cancelled' ? true : false
       } : o));
       
       // Update selected order details inside modal if it's currently open
@@ -83,12 +91,53 @@ export const AdminOrders = () => {
           ...prev, 
           status: newStatus,
           cancellationReason: newStatus === 'cancelled' ? reason : undefined,
-          cancelledAt: newStatus === 'cancelled' ? { seconds: Math.floor(Date.now() / 1000) } : undefined
+          cancelledAt: newStatus === 'cancelled' ? { seconds: Math.floor(Date.now() / 1000) } : undefined,
+          archived: newStatus === 'cancelled' ? true : false
         }));
       }
     } catch (error) {
       console.error("Error updating status:", error);
       alert("حدث خطأ أثناء محاولة تحديث حالة الطلب.");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleRestoreOrder = async (orderId: string) => {
+    setUpdating(orderId);
+    try {
+      await updateOrder(orderId, { status: 'pending', archived: false });
+      setOrders(prev => prev.map(o => o.id === orderId ? { 
+        ...o, 
+        status: 'pending', 
+        analyticsAppliedStatus: 'pending',
+        archived: false,
+        cancelledAt: undefined,
+        cancellationReason: undefined
+      } : o));
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder(null);
+      }
+    } catch (error) {
+      console.error("Error restoring order:", error);
+      alert("حدث خطأ أثناء محاولة استعادة الطلب.");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleDeletePermanently = async (orderId: string) => {
+    setUpdating(orderId);
+    try {
+      await deleteOrder(orderId);
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder(null);
+      }
+      setConfirmDeleteId(null);
+    } catch (error) {
+      console.error("Error deleting order permanently:", error);
+      alert("حدث خطأ أثناء محاولة حذف الطلب نهائياً.");
     } finally {
       setUpdating(null);
     }
@@ -163,8 +212,17 @@ export const AdminOrders = () => {
   // Filter orders based on user inputs
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      // 1. Status Filter
-      if (statusFilter !== 'all' && (order.status || 'pending') !== statusFilter) {
+      // Tab Filtering: Active Orders vs Archived Orders
+      const isArchived = order.archived === true || order.status === 'cancelled';
+      if (activeTab === 'active' && isArchived) {
+        return false;
+      }
+      if (activeTab === 'archived' && !isArchived) {
+        return false;
+      }
+
+      // 1. Status Filter (Only applicable for non-archived orders)
+      if (activeTab === 'active' && statusFilter !== 'all' && (order.status || 'pending') !== statusFilter) {
         return false;
       }
 
@@ -194,7 +252,7 @@ export const AdminOrders = () => {
 
       return true;
     });
-  }, [orders, statusFilter, deliveryFilter, searchTerm]);
+  }, [orders, statusFilter, deliveryFilter, searchTerm, activeTab]);
 
   // Pagination bounds calculation
   const paginatedOrders = useMemo(() => {
@@ -207,7 +265,7 @@ export const AdminOrders = () => {
   // Reset page index on search or filter updates
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, deliveryFilter]);
+  }, [searchTerm, statusFilter, deliveryFilter, activeTab]);
 
   const getStatusBadgeStyles = (status: string) => {
     const cleanStatus = status || 'pending';
@@ -267,6 +325,38 @@ export const AdminOrders = () => {
         </div>
       </div>
 
+      {/* Tabs Selector: Orders vs Archived Orders */}
+      <div className="flex items-center border-b border-neutral-200/60 pb-1">
+        <button
+          onClick={() => {
+            setActiveTab('active');
+            setStatusFilter('all');
+          }}
+          className={`px-5 py-3 text-xs font-bold transition-all border-b-2 relative -mb-[5px] flex items-center gap-2 cursor-pointer ${
+            activeTab === 'active'
+              ? 'border-rose-600 text-rose-600 font-black'
+              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>الطلبات النشطة / Orders ({orders.filter(o => o.status !== 'cancelled' && o.archived !== true).length})</span>
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('archived');
+            setStatusFilter('all');
+          }}
+          className={`px-5 py-3 text-xs font-bold transition-all border-b-2 relative -mb-[5px] flex items-center gap-2 cursor-pointer ${
+            activeTab === 'archived'
+              ? 'border-rose-600 text-rose-600 font-black'
+              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          <Trash2 className="w-4 h-4 text-rose-500" />
+          <span>الطلبات المؤرشفة / Archived Orders ({orders.filter(o => o.status === 'cancelled' || o.archived === true).length})</span>
+        </button>
+      </div>
+
       {/* Structured powerful searching, status, and delivery filtering panel */}
       <div className="bg-white p-5 rounded-3xl border border-neutral-100 shadow-xs space-y-4">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -294,21 +384,22 @@ export const AdminOrders = () => {
 
           <div className="flex flex-wrap gap-3 items-center">
             {/* Status dropdown filters */}
-            <div className="flex items-center gap-1 bg-neutral-50 border border-neutral-200 px-3 py-1.5 rounded-2xl">
-              <Filter className="w-3.5 h-3.5 text-neutral-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent border-none text-xs font-bold text-neutral-600 outline-none cursor-pointer pr-1"
-              >
-                <option value="all">كل الحالات</option>
-                <option value="pending">قيد الانتظار</option>
-                <option value="processing">في المعالجة</option>
-                <option value="shipped">تم الشحن</option>
-                <option value="delivered">تم التسليم</option>
-                <option value="cancelled">ملغي</option>
-              </select>
-            </div>
+            {activeTab === 'active' && (
+              <div className="flex items-center gap-1 bg-neutral-50 border border-neutral-200 px-3 py-1.5 rounded-2xl">
+                <Filter className="w-3.5 h-3.5 text-neutral-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-transparent border-none text-xs font-bold text-neutral-600 outline-none cursor-pointer pr-1"
+                >
+                  <option value="all">كل الحالات النشطة</option>
+                  <option value="pending">قيد الانتظار</option>
+                  <option value="processing">في المعالجة</option>
+                  <option value="shipped">تم الشحن</option>
+                  <option value="delivered">تم التسليم</option>
+                </select>
+              </div>
+            )}
 
             {/* Delivery type filters */}
             <div className="flex items-center gap-1 bg-neutral-50 border border-neutral-200 px-3 py-1.5 rounded-2xl">
@@ -325,7 +416,7 @@ export const AdminOrders = () => {
             </div>
             
             {/* Reset queries buttons */}
-            {(searchTerm || statusFilter !== 'all' || deliveryFilter !== 'all') && (
+            {(searchTerm || (activeTab === 'active' && statusFilter !== 'all') || deliveryFilter !== 'all') && (
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -472,32 +563,61 @@ export const AdminOrders = () => {
 
                       {/* 6. In-line interactive State Changer Dropdown */}
                       <td className="px-6 py-4.5 text-center">
-                        <div className="relative inline-block text-right">
-                          <select
-                            value={order.status || 'pending'}
-                            onChange={(e) => initiateStatusChange(order.id, e.target.value)}
-                            disabled={updating === order.id}
-                            className={`text-[11px] font-bold py-1.5 px-3 rounded-full border border-solid transition outline-none appearance-none cursor-pointer pr-4 pl-4 text-center ${getStatusBadgeStyles(order.status)} ${updating === order.id ? 'opacity-50 pointer-events-none' : ''}`}
-                            style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundPosition: 'left 8px center', backgroundSize: '12px', backgroundRepeat: 'no-repeat' }}
-                          >
-                            <option value="pending">قيد الانتظار</option>
-                            <option value="processing">في المعالجة</option>
-                            <option value="shipped">تم الشحن</option>
-                            <option value="delivered">تم التسليم</option>
-                            <option value="cancelled">ملغي</option>
-                          </select>
-                        </div>
+                        {activeTab === 'active' ? (
+                          <div className="relative inline-block text-right">
+                            <select
+                              value={order.status || 'pending'}
+                              onChange={(e) => initiateStatusChange(order.id, e.target.value)}
+                              disabled={updating === order.id}
+                              className={`text-[11px] font-bold py-1.5 px-3 rounded-full border border-solid transition outline-none appearance-none cursor-pointer pr-4 pl-4 text-center ${getStatusBadgeStyles(order.status)} ${updating === order.id ? 'opacity-50 pointer-events-none' : ''}`}
+                              style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundPosition: 'left 8px center', backgroundSize: '12px', backgroundRepeat: 'no-repeat' }}
+                            >
+                              <option value="pending">قيد الانتظار</option>
+                              <option value="processing">في المعالجة</option>
+                              <option value="shipped">تم الشحن</option>
+                              <option value="delivered">تم التسليم</option>
+                              <option value="cancelled">ملغي</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <span className={`px-3 py-1.5 rounded-full border border-solid text-[11px] font-bold ${getStatusBadgeStyles('cancelled')}`}>
+                            {getStatusTextArabic('cancelled')}
+                          </span>
+                        )}
                       </td>
 
                       {/* 7. Action controllers */}
                       <td className="px-6 py-4.5 text-center">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="p-2 bg-neutral-50 hover:bg-rose-50 text-neutral-600 hover:text-rose-600 border border-neutral-200/40 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px]"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>عرض الفاتورة</span>
-                        </button>
+                        {activeTab === 'active' ? (
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="p-2 bg-neutral-50 hover:bg-rose-50 text-neutral-600 hover:text-rose-600 border border-neutral-200/40 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px]"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>عرض الفاتورة</span>
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleRestoreOrder(order.id)}
+                              disabled={updating === order.id}
+                              className="px-2.5 py-1.5 bg-neutral-50 hover:bg-rose-50 text-rose-600 border border-neutral-200/50 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50 mr-auto ml-auto"
+                              title="استعادة الطلب والبيع"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${updating === order.id ? 'animate-spin' : ''}`} />
+                              <span>استعادة الطلب</span>
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(order.id)}
+                              disabled={updating === order.id}
+                              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50"
+                              title="حذف نهائي للطلب"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>حذف نهائي</span>
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
@@ -866,6 +986,50 @@ export const AdminOrders = () => {
                 className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50"
               >
                 {updating ? 'جاري الحفظ...' : 'تأكيد الإلغاء'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Permanent Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-neutral-900/45 backdrop-blur-xs flex items-center justify-center p-4 z-55">
+          <div className="bg-white rounded-[24px] shadow-2xl border border-neutral-100 max-w-md w-full overflow-hidden">
+            <div className="bg-rose-950 text-white p-5 text-right">
+              <h3 className="text-sm font-black flex items-center gap-2 justify-end">
+                <span>حذف الطلب نهائياً ومسحه</span>
+                <span className="p-1 px-2.5 rounded bg-rose-900 text-rose-300 text-xs text-center font-bold">حذف نهائي</span>
+              </h3>
+              <p className="text-[10px] text-zinc-300 mt-1">
+                لا يمكن استعادة الطلب المعني بعد إتمام هذا الإجراء.
+              </p>
+            </div>
+            
+            <div className="p-6 space-y-4 text-xs text-right text-neutral-700 leading-relaxed font-bold">
+              هل أنت متأكد من حذف هذا الطلب نهائياً ومسحه من قاعدة البيانات؟ لا يمكن التراجع عن هذا الإجراء وسيتم شطب السجل تماماً.
+            </div>
+            
+            <div className="bg-neutral-50 p-4 border-t border-neutral-100 flex gap-2.5 justify-end text-xs">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 hover:bg-neutral-200 text-neutral-700 border border-neutral-300 font-bold rounded-xl cursor-pointer"
+                disabled={updating !== null}
+              >
+                تراجع وإلغاء
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (confirmDeleteId) {
+                    await handleDeletePermanently(confirmDeleteId);
+                  }
+                }}
+                disabled={updating !== null}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer disabled:opacity-50"
+              >
+                {updating ? 'جاري الحذف...' : 'تأكيد الحذف نهائياً'}
               </button>
             </div>
           </div>
