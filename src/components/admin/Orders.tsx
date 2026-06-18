@@ -434,10 +434,10 @@ export const AdminOrders = () => {
 
       {/* Structured core interactive grid table */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto min-h-[400px] will-change-scroll isolate">
           <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
-              <tr className="bg-neutral-50/70 border-b border-neutral-100 text-neutral-500 font-bold">
+              <tr className="bg-neutral-50 border-b border-neutral-100 text-neutral-500 font-bold">
                 <th className="px-6 py-4 text-start">رقم الطلب (ID)</th>
                 <th className="px-6 py-4">الزبون / العميل</th>
                 <th className="px-6 py-4">الولاية / طريقة التسليم</th>
@@ -447,7 +447,7 @@ export const AdminOrders = () => {
                 <th className="px-6 py-4 text-center">خيارات الإدارة</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody>
               {paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-16 text-center text-neutral-400 font-medium">
@@ -465,7 +465,7 @@ export const AdminOrders = () => {
                   const orderNum = order.orderNumber || `#ORD-${order.id?.slice(0, 5)}`;
                   
                   return (
-                    <tr key={order.id} className="hover:bg-neutral-50/40 transition-colors duration-150">
+                    <tr key={order.id} className="hover:bg-neutral-50 border-b border-neutral-100">
                       {/* 1. Order ID and Number */}
                       <td className="px-6 py-4.5 text-start font-mono">
                         <div className="flex items-center gap-1.5">
