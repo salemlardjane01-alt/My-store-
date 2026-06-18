@@ -433,7 +433,7 @@ export const AdminOrders = () => {
       </div>
 
       {/* Structured core interactive grid table */}
-      <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden [transform:translateZ(0)] [backface-visibility:hidden]">
         <div className="overflow-x-auto min-h-[400px] will-change-scroll isolate">
           <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
