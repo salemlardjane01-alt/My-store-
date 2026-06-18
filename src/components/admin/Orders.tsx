@@ -434,7 +434,7 @@ export const AdminOrders = () => {
 
       {/* Structured core interactive grid table */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-clip">
-        <div className="overflow-x-auto min-h-[400px] bg-white [transform:translateZ(0)]">
+        <div className="overflow-x-auto min-h-[400px] bg-white">
           <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
               <tr className="bg-neutral-50 text-neutral-500 font-bold">
@@ -463,7 +463,7 @@ export const AdminOrders = () => {
                   const orderNum = order.orderNumber || `#ORD-${order.id?.slice(0, 5)}`;
                   
                   return (
-                    <tr key={order.id} className="bg-white hover:bg-neutral-50/40 transition-colors duration-150">
+                    <tr key={order.id} className="bg-white hover:bg-neutral-50/40">
                       {/* 1. Order ID and Number */}
                       <td className="px-6 py-4.5 text-start font-mono border-b border-neutral-100">
                         <div className="flex items-center gap-1.5">
