@@ -433,24 +433,22 @@ export const AdminOrders = () => {
       </div>
 
       {/* Structured core interactive grid table */}
-      <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden [transform:translateZ(0)] [backface-visibility:hidden]">
-        <div className="overflow-x-auto min-h-[400px] will-change-scroll isolate">
+      <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-clip">
+        <div className="overflow-x-auto min-h-[400px] bg-white [transform:translateZ(0)]">
           <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
-              <tr className="bg-neutral-50 border-b border-neutral-100 text-neutral-500 font-bold">
-                <th className="px-6 py-4 text-start">رقم الطلب (ID)</th>
-                <th className="px-6 py-4">الزبون / العميل</th>
-                <th className="px-6 py-4">الولاية / طريقة التسليم</th>
-                <th className="px-6 py-4 text-center">المنتجات المباعة</th>
-                <th className="px-6 py-4 text-left font-bold">الإجمالي</th>
-                <th className="px-6 py-4 text-center">تحديث الحالة</th>
-                <th className="px-6 py-4 text-center">خيارات الإدارة</th>
+              <tr className="bg-neutral-50 text-neutral-500 font-bold">
+                <th className="px-6 py-4 text-start border-b border-neutral-100">رقم الطلب (ID)</th>
+                <th className="px-6 py-4 border-b border-neutral-100">الزبون / العميل</th>
+                <th className="px-6 py-4 border-b border-neutral-100">الولاية / طريقة التسليم</th>
+                <th className="px-6 py-4 text-center border-b border-neutral-100">تحديث الحالة</th>
+                <th className="px-6 py-4 text-center border-b border-neutral-100">خيارات الإدارة</th>
               </tr>
             </thead>
             <tbody>
               {paginatedOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center text-neutral-400 font-medium">
+                <tr className="bg-white">
+                  <td colSpan={5} className="px-6 py-16 text-center text-neutral-400 font-medium">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <ShoppingBag className="w-8 h-8 text-neutral-300" />
                       <span>لا توجد طلبات تطابق معايير البحث أو التصفية المحددة.</span>
@@ -465,9 +463,9 @@ export const AdminOrders = () => {
                   const orderNum = order.orderNumber || `#ORD-${order.id?.slice(0, 5)}`;
                   
                   return (
-                    <tr key={order.id} className="hover:bg-neutral-50 border-b border-neutral-100">
+                    <tr key={order.id} className="bg-white hover:bg-neutral-50/40 transition-colors duration-150">
                       {/* 1. Order ID and Number */}
-                      <td className="px-6 py-4.5 text-start font-mono">
+                      <td className="px-6 py-4.5 text-start font-mono border-b border-neutral-100">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[13px] font-black text-neutral-800">{orderNum}</span>
                           <button
@@ -488,7 +486,7 @@ export const AdminOrders = () => {
                       </td>
 
                       {/* 2. Customer Name & Phone */}
-                      <td className="px-6 py-4.5">
+                      <td className="px-6 py-4.5 border-b border-neutral-100">
                         <div className="text-xs font-bold text-neutral-900 truncate max-w-[170px]" title={order.customerInfo?.fullName}>
                           {order.customerInfo?.fullName || 'بدون اسم'}
                         </div>
@@ -520,7 +518,7 @@ export const AdminOrders = () => {
                       </td>
 
                       {/* 3. Wilaya + Delivery Option */}
-                      <td className="px-6 py-4.5">
+                      <td className="px-6 py-4.5 border-b border-neutral-100">
                         <div className="flex items-center gap-1 font-bold text-neutral-800">
                           <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                           <span className="truncate max-w-[120px]">{stateKey}</span>
@@ -540,29 +538,8 @@ export const AdminOrders = () => {
                         </div>
                       </td>
 
-                      {/* 4. Product Sales Units and quantity count */}
-                      <td className="px-6 py-4.5 text-center font-bold">
-                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-neutral-50 text-neutral-700 text-[11px] border border-neutral-150">
-                          <span>{order.items?.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0) || 0}</span>
-                          <span className="text-neutral-400 font-normal">قطع</span>
-                        </div>
-                        <div className="text-[10px] text-neutral-400 mt-1">
-                          ({order.items?.length || 0} منتجات مختلفة)
-                        </div>
-                      </td>
-
-                      {/* 5. Pricing total price display */}
-                      <td className="px-6 py-4.5 text-left">
-                        <div className="text-xs font-black text-rose-600 font-mono">
-                          {Number(order.totalPrice || 0).toLocaleString()} دج
-                        </div>
-                        <div className="text-[10px] text-neutral-400 mt-1 font-mono">
-                          الشحن: {Number(order.deliveryFee || 0).toLocaleString()} دج
-                        </div>
-                      </td>
-
-                      {/* 6. In-line interactive State Changer Dropdown */}
-                      <td className="px-6 py-4.5 text-center">
+                      {/* 4. In-line interactive State Changer Dropdown */}
+                      <td className="px-6 py-4.5 text-center border-b border-neutral-100">
                         {activeTab === 'active' ? (
                           <div className="relative inline-block text-right">
                             <select
@@ -587,7 +564,7 @@ export const AdminOrders = () => {
                       </td>
 
                       {/* 7. Action controllers */}
-                      <td className="px-6 py-4.5 text-center">
+                      <td className="px-6 py-4.5 text-center border-b border-neutral-100">
                         {activeTab === 'active' ? (
                           <button
                             onClick={() => setSelectedOrder(order)}
