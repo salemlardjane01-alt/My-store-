@@ -22,8 +22,7 @@ export const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => 
     );
   }
 
-  const allowedRoles = ['owner', 'admin', 'manager', 'support'];
-  if (!currentUser?.role || !allowedRoles.includes(currentUser.role)) {
+  if (currentUser?.role !== 'admin') {
     return (
        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-brand-bg min-h-screen">
          <h2 className="text-xl font-medium text-brand-text">Access Denied</h2>

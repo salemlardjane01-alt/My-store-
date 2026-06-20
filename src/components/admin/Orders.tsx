@@ -434,7 +434,7 @@ export const AdminOrders = () => {
 
       {/* Structured core interactive grid table */}
       <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-clip">
-        <div className="overflow-x-auto min-h-[400px] bg-white">
+        <div className="overflow-x-auto min-h-[400px] bg-white [transform:translateZ(0)]">
           <table className="w-full text-right border-separate border-spacing-0 text-xs">
             <thead>
               <tr className="bg-neutral-50 text-neutral-500 font-bold">
@@ -568,7 +568,7 @@ export const AdminOrders = () => {
                         {activeTab === 'active' ? (
                           <button
                             onClick={() => setSelectedOrder(order)}
-                            className="p-2 bg-neutral-50 hover:bg-rose-50 text-neutral-600 hover:text-rose-600 border border-neutral-200/40 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px]"
+                            className="p-2 bg-neutral-50 hover:bg-rose-50 text-neutral-600 hover:text-rose-600 border border-neutral-200/40 hover:border-rose-100 rounded-xl cursor-pointer inline-flex items-center gap-1 font-bold text-[11px]"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span>عرض الفاتورة</span>
@@ -578,7 +578,7 @@ export const AdminOrders = () => {
                             <button
                               onClick={() => handleRestoreOrder(order.id)}
                               disabled={updating === order.id}
-                              className="px-2.5 py-1.5 bg-neutral-50 hover:bg-rose-50 text-rose-600 border border-neutral-200/50 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50"
+                              className="px-2.5 py-1.5 bg-neutral-50 hover:bg-rose-50 text-rose-600 border border-neutral-200/50 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50 mr-auto ml-auto"
                               title="استعادة الطلب والبيع"
                             >
                               <RefreshCw className={`w-3 h-3 ${updating === order.id ? 'animate-spin' : ''}`} />
