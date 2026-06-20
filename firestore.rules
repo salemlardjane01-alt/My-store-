@@ -17,11 +17,13 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Direct email check for bootstrapped admin plus optional admin index lookup
-      return isSignedIn() && (
-        request.auth.token.email == 'shoplix000@gmail.com' || 
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
+      // Role-Based dynamic lookup from the users collection
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'manager' ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'support');
     }
 
     function isValidId(id) {
@@ -31,7 +33,15 @@ service cloud.firestore {
     // Users Collection
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidId(userId) && 
+                    (!request.resource.data.keys().hasAny(['role']) ||
+                     request.resource.data.role == 'customer' ||
+                     (request.resource.data.role == 'owner' && 
+                      (!exists(/databases/$(database)/documents/settings/metadata) ||
+                       !get(/databases/$(database)/documents/settings/metadata).data.keys().hasAny(['ownerUid']) ||
+                       get(/databases/$(database)/documents/settings/metadata).data.ownerUid == request.auth.uid)));
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     // Products Collection
@@ -62,7 +72,17 @@ service cloud.firestore {
     // Settings Collection (Hero configuration settings)
     match /settings/{settingId} {
       allow read: if true; // Publicly readable for all customers to download layout styles
-      allow write: if isAdmin(); // Only Admin can write or alter Hero presets
+      allow write: if isAdmin() || (
+        settingId == 'metadata' && 
+        isSignedIn() && (
+          // If metadata does not exist, we can write it and claim ownerUid
+          (!exists(/databases/$(database)/documents/settings/metadata) && 
+           request.resource.data.ownerUid == request.auth.uid) ||
+          // If it exists but has no ownerUid, we can add ours
+          (!get(/databases/$(database)/documents/settings/metadata).data.keys().hasAny(['ownerUid']) && 
+           request.resource.data.ownerUid == request.auth.uid)
+        )
+      );
       
       // Let any checkout process increment the order counter safely
       allow create: if settingId == 'counters'

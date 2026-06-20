@@ -578,7 +578,7 @@ export const AdminOrders = () => {
                             <button
                               onClick={() => handleRestoreOrder(order.id)}
                               disabled={updating === order.id}
-                              className="px-2.5 py-1.5 bg-neutral-50 hover:bg-rose-50 text-rose-600 border border-neutral-200/50 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50 mr-auto ml-auto"
+                              className="px-2.5 py-1.5 bg-neutral-50 hover:bg-rose-50 text-rose-600 border border-neutral-200/50 hover:border-rose-100 rounded-xl transition cursor-pointer inline-flex items-center gap-1 font-bold text-[11px] disabled:opacity-50"
                               title="استعادة الطلب والبيع"
                             >
                               <RefreshCw className={`w-3 h-3 ${updating === order.id ? 'animate-spin' : ''}`} />

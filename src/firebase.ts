@@ -128,28 +128,79 @@ export const getUserProfileDocument = async (uid: string) => {
 };
 
 export const createUserProfileDocument = async (userAuth: any, additionalData: any = {}) => {
-  if (!userAuth) return;
+  if (!userAuth) return null;
 
   const userRef = doc(db, USERS_COLLECTION, userAuth.uid);
-  const snapShot = await getDoc(userRef);
+  const metadataRef = doc(db, 'settings', 'metadata');
 
-  if (!snapShot.exists()) {
-    const { displayName, email, photoURL } = userAuth;
-    const role = (email === 'shoplix000@gmail.com') ? 'admin' : 'user';
-    try {
-      await setDoc(userRef, {
-        uid: userAuth.uid,
-        name: displayName,
-        email,
-        photoURL,
-        role,
-        createdAt: serverTimestamp(),
-        ...additionalData
+  try {
+    const userSnapshot = await getDoc(userRef);
+    if (!userSnapshot.exists()) {
+      const { displayName, email, photoURL } = userAuth;
+      
+      // Perform a transaction to dynamically assign role atomically.
+      await runTransaction(db, async (transaction) => {
+        // Redundant check inside the transaction to avoid race-condition user creation.
+        const txUserSnap = await transaction.get(userRef);
+        if (txUserSnap.exists()) {
+          return; // Already created by another process
+        }
+
+        const txMetadataSnap = await transaction.get(metadataRef);
+        let role = 'customer';
+        let metadataToSet: any = null;
+
+        if (!txMetadataSnap.exists()) {
+          // If metadata does not exist, this user is the owner, and we setup metadata
+          role = 'owner';
+          metadataToSet = {
+            storeName: "Shoplix",
+            storeDescription: "The finest Linen Collection and premium essentials",
+            currency: "DZD",
+            initialized: true,
+            ownerUid: userAuth.uid,
+            ownerEmail: email || '',
+            createdAt: serverTimestamp()
+          };
+        } else {
+          const metadataData = txMetadataSnap.data() || {};
+          if (!metadataData.ownerUid) {
+            // Metadata exists but has no owner claimed yet!
+            role = 'owner';
+            // Merge-update owner details safely
+            metadataToSet = {
+              ...metadataData,
+              ownerUid: userAuth.uid,
+              ownerEmail: email || '',
+              initialized: true
+            };
+          } else {
+            role = 'customer';
+          }
+        }
+
+        // Set the user profile document with the decided role
+        transaction.set(userRef, {
+          uid: userAuth.uid,
+          name: displayName || '',
+          email: email || '',
+          photoURL: photoURL || '',
+          role,
+          createdAt: serverTimestamp(),
+          ...additionalData
+        });
+
+        // Set or update metadata if we are claiming owner status or creating it
+        if (metadataToSet) {
+          transaction.set(metadataRef, metadataToSet, { merge: true });
+        }
       });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, USERS_COLLECTION);
     }
+  } catch (error) {
+    console.error("Error creating user profile document via transaction:", error);
+    handleFirestoreError(error, OperationType.CREATE, USERS_COLLECTION);
   }
+
   return userRef;
 };
 
@@ -357,9 +408,28 @@ export const getTelegramSettings = async () => {
     if (snap.exists()) {
       return snap.data();
     }
-    return null;
+    return {
+      enabled: false,
+      botToken: '',
+      chatId: '',
+      contactBotToken: '',
+      contactChatId: '',
+      contactEnabled: false,
+      bots: [],
+      lastUsedBotIndex: -1
+    };
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, `${SETTINGS_COLLECTION}/${TELEGRAM_DOCUMENT_ID}`);
+    console.error("Failed to fetch custom telegram settings, returning default config:", error);
+    return {
+      enabled: false,
+      botToken: '',
+      chatId: '',
+      contactBotToken: '',
+      contactChatId: '',
+      contactEnabled: false,
+      bots: [],
+      lastUsedBotIndex: -1
+    };
   }
 };
 
@@ -1468,9 +1538,28 @@ export const getHeroSettings = async (forceFresh = false) => {
       saveToLocalCache('hero_settings', data);
       return data;
     }
-    return null;
+    const defaultHero = {
+      imageUrl: "",
+      badge: "Spring / Summer 26",
+      title: "The Linen Collection",
+      description: "",
+      ctaText: "Shop New Season",
+      ctaLink: "all"
+    };
+    cachedHeroSettings = defaultHero;
+    return defaultHero;
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, `${SETTINGS_COLLECTION}/${HERO_DOCUMENT_ID}`);
+    console.warn("Failed to fetch custom hero settings, returning default configuration:", error);
+    const defaultHero = {
+      imageUrl: "",
+      badge: "Spring / Summer 26",
+      title: "The Linen Collection",
+      description: "",
+      ctaText: "Shop New Season",
+      ctaLink: "all"
+    };
+    cachedHeroSettings = defaultHero;
+    return defaultHero;
   }
 };
 
@@ -1535,9 +1624,24 @@ export const getSocialSettings = async (forceFresh = false) => {
       saveToLocalCache('social_settings', data);
       return data;
     }
-    return null;
+    const defaultSocial = {
+      whatsapp: '',
+      instagram: '',
+      facebook: '',
+      telegram: ''
+    };
+    cachedSocialSettings = defaultSocial;
+    return defaultSocial;
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, `${SETTINGS_COLLECTION}/${SOCIAL_DOCUMENT_ID}`);
+    console.warn("Failed to fetch custom social settings, returning default config:", error);
+    const defaultSocial = {
+      whatsapp: '',
+      instagram: '',
+      facebook: '',
+      telegram: ''
+    };
+    cachedSocialSettings = defaultSocial;
+    return defaultSocial;
   }
 };
 
@@ -1710,9 +1814,18 @@ export const getDeliveryProvidersSettings = async (forceFresh = false) => {
       saveToLocalCache('delivery_providers_settings', data);
       return data;
     }
-    return null;
+    const defaultDelivery = {
+      providers: []
+    };
+    cachedDeliverySettings = defaultDelivery;
+    return defaultDelivery;
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, `${SETTINGS_COLLECTION}/${DELIVERY_PROVIDERS_DOCUMENT_ID}`);
+    console.warn("Failed to fetch delivery providers settings, returning default config:", error);
+    const defaultDelivery = {
+      providers: []
+    };
+    cachedDeliverySettings = defaultDelivery;
+    return defaultDelivery;
   }
 };
 
@@ -1729,6 +1842,121 @@ export const updateDeliveryProvidersSettings = async (settingsData: any) => {
     saveToLocalCache('delivery_providers_settings', settingsData);
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${SETTINGS_COLLECTION}/${DELIVERY_PROVIDERS_DOCUMENT_ID}`);
+  }
+};
+
+let isInitialisedLocally = false;
+
+export const bootstrapStoreDatabase = async () => {
+  // Prevent multiple double bootstrap runs in the same session
+  if (isInitialisedLocally) return;
+  isInitialisedLocally = true;
+
+  try {
+    const metadataRef = doc(db, 'settings', 'metadata');
+    const metadataSnap = await getDoc(metadataRef);
+    if (metadataSnap.exists() && metadataSnap.data()?.initialized) {
+      // Already bootstrapped!
+      return;
+    }
+
+    console.log("Shoplix: Bootstrapping new database from fresh image...");
+
+    // Create the batch
+    const batch = writeBatch(db);
+
+    // 1. settings/metadata
+    batch.set(doc(db, 'settings', 'metadata'), {
+      storeName: "Shoplix",
+      storeDescription: "The finest Linen Collection and premium essentials",
+      currency: "DZD",
+      initialized: true,
+      createdAt: serverTimestamp()
+    });
+
+    // 2. settings/hero
+    batch.set(doc(db, 'settings', 'hero'), {
+      imageUrl: "",
+      badge: "Spring / Summer 26",
+      title: "The Linen Collection",
+      description: "",
+      ctaText: "Shop New Season",
+      ctaLink: "all",
+      updatedAt: serverTimestamp()
+    });
+
+    // 3. settings/social
+    batch.set(doc(db, 'settings', 'social'), {
+      whatsapp: "",
+      instagram: "",
+      facebook: "",
+      telegram: "",
+      updatedAt: serverTimestamp()
+    });
+
+    // 4. settings/telegram
+    batch.set(doc(db, 'settings', 'telegram'), {
+      enabled: false,
+      botToken: "",
+      chatId: "",
+      contactBotToken: "",
+      contactChatId: "",
+      contactEnabled: false,
+      bots: [],
+      lastUsedBotIndex: -1,
+      updatedAt: serverTimestamp()
+    });
+
+    // 5. settings/delivery_providers
+    batch.set(doc(db, 'settings', 'delivery_providers'), {
+      providers: [],
+      updatedAt: serverTimestamp()
+    });
+
+    // 6. settings/counters
+    batch.set(doc(db, 'settings', 'counters'), {
+      lastOrderNumber: 1000
+    });
+
+    // 7. analytics/dashboard
+    batch.set(doc(db, 'analytics', 'dashboard'), {
+      initialized: true,
+      globalStats: {
+        cancelledOrdersCount: 0,
+        processingOrdersCount: 0,
+        cancellationRate: 0
+      },
+      dailyStats: {},
+      logs: []
+    });
+
+    // Commit the first batch
+    await batch.commit();
+
+    // 8. Seeding default shipping rates
+    // Firestore batch limit is 500 writes, so all 58 wilayas fit easily in a single batch!
+    const ratesSnap = await getDocs(query(collection(db, 'shipping_rates'), limit(1)));
+    if (ratesSnap.empty) {
+      const ratesBatch = writeBatch(db);
+      const { algeriaWilayas } = await import('./data/algeriaCities');
+      algeriaWilayas.forEach((w) => {
+        const rateRef = doc(db, 'shipping_rates', String(w.id));
+        ratesBatch.set(rateRef, {
+          wilayaId: w.id,
+          wilayaName: w.name,
+          wilayaNameEn: w.nameEn,
+          homePrice: w.shippingHome,
+          deskPrice: w.shippingPickup,
+          enabled: true,
+          updatedAt: serverTimestamp()
+        });
+      });
+      await ratesBatch.commit();
+    }
+
+    console.log("Shoplix: Store initialized successfully with all configurations.");
+  } catch (error) {
+    console.warn("Shoplix: Error during automatic bootstrap (safely caught):", error);
   }
 };
 

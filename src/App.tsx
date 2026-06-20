@@ -801,6 +801,19 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
+  // Trigger silent system-wide auto initialization on startup
+  React.useEffect(() => {
+    const runBootstrap = async () => {
+      try {
+        const { bootstrapStoreDatabase } = await import('./firebase');
+        await bootstrapStoreDatabase();
+      } catch (err) {
+        console.warn("Silent database bootstrap failed:", err);
+      }
+    };
+    runBootstrap();
+  }, []);
+
   // Sync state changes back to standard URL paths (without reloading the page)
   React.useEffect(() => {
     const currentPath = window.location.pathname;

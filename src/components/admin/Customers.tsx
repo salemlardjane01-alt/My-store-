@@ -68,8 +68,14 @@ export const AdminCustomers = () => {
                       {user.email}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-[12px] px-3 py-1 rounded-full font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-neutral-100 text-neutral-700'}`}>
-                        {user.role || 'user'}
+                      <span className={`text-[12px] px-3 py-1 rounded-full font-medium ${
+                        user.role === 'owner' ? 'bg-amber-100 text-amber-700' :
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                        user.role === 'manager' ? 'bg-blue-100 text-blue-700' :
+                        user.role === 'support' ? 'bg-green-100 text-green-700' :
+                        'bg-neutral-100 text-neutral-700'
+                      }`}>
+                        {user.role || 'customer'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-[13px] text-neutral-500">
