@@ -3,6 +3,7 @@ import { ArrowLeft, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProducts, getCategories } from '../firebase';
 import { Product } from '../types';
 import { ProductCard } from '../App';
+import { isArabic } from '../lib/textHelpers';
 
 interface AllProductsProps {
   onBack: () => void;
@@ -92,8 +93,6 @@ export const AllProducts: React.FC<AllProductsProps> = ({
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const isArabic = (text?: string) => text ? /[\u0600-\u06FF]/.test(text) : false;
 
   return (
     <div className="flex-1 bg-brand-bg min-h-screen flex flex-col">

@@ -28,7 +28,7 @@ import {
   getDownloadURL, 
   deleteObject 
 } from 'firebase/storage';
-import { saveToLocalCache, getFromLocalCache } from './lib/cacheHelper';
+import { saveToLocalCache, getFromLocalCache, invalidateCache } from './lib/cacheHelper';
 
 const firebaseConfig = {
   apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || '',
@@ -307,9 +307,7 @@ export const addProduct = async (productData: any) => {
       createdAt: serverTimestamp()
     });
     cachedProducts = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_products'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_products');
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, PRODUCTS_COLLECTION);
@@ -324,9 +322,7 @@ export const updateProduct = async (id: string, productData: any) => {
       updatedAt: serverTimestamp()
     });
     cachedProducts = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_products'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_products');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${PRODUCTS_COLLECTION}/${id}`);
   }
@@ -337,9 +333,7 @@ export const deleteProduct = async (id: string) => {
     const docRef = doc(db, PRODUCTS_COLLECTION, id);
     await deleteDoc(docRef);
     cachedProducts = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_products'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_products');
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${PRODUCTS_COLLECTION}/${id}`);
   }
@@ -1138,9 +1132,7 @@ export const addCategory = async (categoryData: any) => {
       createdAt: serverTimestamp()
     });
     cachedCategories = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_categories'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_categories');
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, CATEGORIES_COLLECTION);
@@ -1155,9 +1147,7 @@ export const updateCategory = async (id: string, categoryData: any) => {
       updatedAt: serverTimestamp()
     });
     cachedCategories = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_categories'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_categories');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${CATEGORIES_COLLECTION}/${id}`);
   }
@@ -1168,9 +1158,7 @@ export const deleteCategory = async (id: string) => {
     const docRef = doc(db, CATEGORIES_COLLECTION, id);
     await deleteDoc(docRef);
     cachedCategories = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_categories'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_categories');
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${CATEGORIES_COLLECTION}/${id}`);
   }
@@ -1371,15 +1359,14 @@ const compressImageToBase64 = (file: File): Promise<string> => {
   });
 };
 
-export const uploadProductImage = async (file: File): Promise<string> => {
+const uploadImage = async (file: File, folder: string, timeoutMs: number): Promise<string> => {
   const uploadPromise = (async () => {
     try {
       const fileExtension = file.name.split('.').pop() || 'jpg';
       const randomId = Math.random().toString(36).substring(2, 10);
       const fileName = `${Date.now()}_${randomId}.${fileExtension}`;
-      const filePath = `products/${fileName}`;
+      const filePath = `${folder}/${fileName}`;
       const storageRef = ref(storage, filePath);
-      
       const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       return downloadURL;
@@ -1389,7 +1376,7 @@ export const uploadProductImage = async (file: File): Promise<string> => {
   })();
 
   const timeoutPromise = new Promise<string>((_, reject) => {
-    setTimeout(() => reject(new Error("Timeout")), 6000); // 6-seconds timeout
+    setTimeout(() => reject(new Error("Timeout")), timeoutMs);
   });
 
   try {
@@ -1398,9 +1385,7 @@ export const uploadProductImage = async (file: File): Promise<string> => {
     console.warn("Storage upload failed or timed out. Falling back to compressed client-side Base64...", error);
     try {
       const compressed = await compressImageToBase64(file);
-      if (compressed) {
-        return compressed;
-      }
+      if (compressed) return compressed;
       throw error;
     } catch (compressError) {
       console.error("Base64 compression failed:", compressError);
@@ -1408,6 +1393,8 @@ export const uploadProductImage = async (file: File): Promise<string> => {
     }
   }
 };
+
+export const uploadProductImage = (file: File): Promise<string> => uploadImage(file, 'products', 6000);
 
 export const deleteProductImageByUrl = async (url: string): Promise<void> => {
   if (!url) return;
@@ -1557,43 +1544,7 @@ export const updateSocialSettings = async (settingsData: any) => {
   }
 };
 
-export const uploadHeroImage = async (file: File): Promise<string> => {
-  const uploadPromise = (async () => {
-    try {
-      const fileExtension = file.name.split('.').pop() || 'jpg';
-      const randomId = Math.random().toString(36).substring(2, 10);
-      const fileName = `${Date.now()}_${randomId}.${fileExtension}`;
-      const filePath = `heroes/${fileName}`;
-      const storageRef = ref(storage, filePath);
-      
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      return downloadURL;
-    } catch (err) {
-      throw err;
-    }
-  })();
-
-  const timeoutPromise = new Promise<string>((_, reject) => {
-    setTimeout(() => reject(new Error("Timeout")), 8000); // 8-seconds timeout
-  });
-
-  try {
-    return await Promise.race([uploadPromise, timeoutPromise]);
-  } catch (error) {
-    console.warn("Storage upload failed or timed out. Falling back to compressed client-side Base64...", error);
-    try {
-      const compressed = await compressImageToBase64(file);
-      if (compressed) {
-        return compressed;
-      }
-      throw error;
-    } catch (compressError) {
-      console.error("Base64 compression failed:", compressError);
-      throw error;
-    }
-  }
-};
+export const uploadHeroImage = (file: File): Promise<string> => uploadImage(file, 'heroes', 8000);
 
 // ==========================================
 // Shipping Rates API
@@ -1656,9 +1607,7 @@ export const updateShippingRate = async (rateData: any) => {
       updatedAt: serverTimestamp()
     }, { merge: true });
     cachedShippingRates = null; // Invalidate memory cache
-    try {
-      localStorage.removeItem('shoplix_cache_shipping_rates'); // Invalidate local storage cache
-    } catch (e) {}
+    invalidateCache('shoplix_cache_shipping_rates');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${SHIPPING_RATES_COLLECTION}/${idStr}`);
   }

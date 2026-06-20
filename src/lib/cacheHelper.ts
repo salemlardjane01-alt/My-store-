@@ -34,3 +34,10 @@ export function getCacheDataIfValid<T>(key: string, ttlMs: number): T | null {
   }
   return null;
 }
+
+export const invalidateCache = (key: string): void => {
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {}
+};
+

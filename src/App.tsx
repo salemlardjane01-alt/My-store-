@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Product } from './types';
 import { getRouteUrl, navigateDeviceAware, getDeviceInfo } from './lib/dynamicRouting';
 import { getSocialSettings } from './firebase';
+import { isArabic } from './lib/textHelpers';
 
 const AdminDashboard = React.lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const ProductDetails = React.lazy(() => import('./components/ProductDetails').then(m => ({ default: m.ProductDetails })));
@@ -254,7 +255,6 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo((props) => {
   const cardRef = React.useRef<HTMLDivElement>(null);
   
   const displayTitle = name || title || 'Unnamed Product';
-  const isArabic = (text?: string) => text ? /[\u0600-\u06FF]/.test(text) : false;
   const isTitleArabic = isArabic(displayTitle);
 
   // IntersectionObserver for prefetching when card enters viewport
