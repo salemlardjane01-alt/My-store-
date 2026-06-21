@@ -463,15 +463,23 @@ const Footer = React.memo(({
       const cleanDigits = trimmed.replace(/\D/g, '');
       return cleanDigits ? `https://wa.me/${cleanDigits}` : '';
     }
+
+    if (type === 'facebook') {
+      let fbUrl = trimmed;
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        fbUrl = `https://facebook.com/${trimmed}`;
+      }
+      const { isMobile } = getDeviceInfo();
+      if (isMobile) {
+        return `fb://facewebmodal/f?href=${encodeURIComponent(fbUrl)}`;
+      }
+      return fbUrl;
+    }
     
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
     
-    // Support fallback handles
-    if (type === 'facebook') {
-      return `https://facebook.com/${trimmed}`;
-    }
     if (type === 'telegram') {
       return `https://t.me/${trimmed.replace(/^@/, '')}`;
     }
