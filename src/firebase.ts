@@ -1,10 +1,4 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { 
-  getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
   collection, 
   doc, 
   getDocs, 
@@ -22,156 +16,34 @@ import {
   limit
 } from 'firebase/firestore';
 import { 
-  getStorage, 
   ref, 
   uploadBytes, 
   getDownloadURL, 
   deleteObject 
 } from 'firebase/storage';
 import { saveToLocalCache, getFromLocalCache, invalidateCache } from './lib/cacheHelper';
+import { db, auth, storage, googleProvider, handleFirestoreError, OperationType } from './firebase/config';
+import { 
+  getUserProfileDocument, 
+  createUserProfileDocument, 
+  signInWithGoogle, 
+  logOut, 
+  USERS_COLLECTION 
+} from './firebase/auth';
 
-const firebaseConfig = {
-  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || '',
-  authDomain: typeof window !== 'undefined' && (window.location.hostname.includes('shoplix.one') || window.location.hostname.includes('vercel.app'))
-    ? window.location.hostname
-    : ((import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || ''),
-  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || ''
+export type { FirestoreErrorInfo } from './firebase/config';
+export { db, auth, storage, googleProvider, handleFirestoreError, OperationType };
+export { 
+  getUserProfileDocument, 
+  createUserProfileDocument, 
+  signInWithGoogle, 
+  logOut, 
+  USERS_COLLECTION 
 };
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-
-let dbInstance;
-try {
-  dbInstance = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager(),
-    }),
-    experimentalForceLongPolling: true,
-  });
-} catch (e) {
-  console.warn("Firestore persistent local cache initialization failed, falling back to long-polling without persistent multiple tab manager.", e);
-  try {
-    dbInstance = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-    });
-  } catch (err) {
-    console.error("Firestore initialization failed completely.", err);
-    // Fallback to basic getFirestore
-    dbInstance = getFirestore(app);
-  }
-}
-
-export const db = dbInstance;
-export const storage = getStorage(app);
-export const googleProvider = new GoogleAuthProvider();
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-    },
-    operationType,
-    path
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
-}
 
 // ==========================================
 // Auth API
 // ==========================================
-const USERS_COLLECTION = 'users';
-
-export const getUserProfileDocument = async (uid: string) => {
-  if (!uid) return null;
-  try {
-    const userRef = doc(db, USERS_COLLECTION, uid);
-    const snapShot = await getDoc(userRef);
-    if (snapShot.exists()) {
-      return snapShot.data();
-    }
-  } catch (error) {
-    console.error("Error fetching user profile", error);
-  }
-  return null;
-};
-
-export const createUserProfileDocument = async (userAuth: any, additionalData: any = {}) => {
-  if (!userAuth) return;
-
-  const userRef = doc(db, USERS_COLLECTION, userAuth.uid);
-  const snapShot = await getDoc(userRef);
-
-  if (!snapShot.exists()) {
-    const { displayName, email, photoURL } = userAuth;
-    const role = (email === 'shoplix000@gmail.com') ? 'admin' : 'user';
-    try {
-      await setDoc(userRef, {
-        uid: userAuth.uid,
-        name: displayName,
-        email,
-        photoURL,
-        role,
-        createdAt: serverTimestamp(),
-        ...additionalData
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, USERS_COLLECTION);
-    }
-  }
-  return userRef;
-};
-
-export const signInWithGoogle = async () => {
-  try {
-    const { user } = await signInWithPopup(auth, googleProvider);
-    await createUserProfileDocument(user);
-    return user;
-  } catch (error) {
-    console.error("Error signing in with Google", error);
-    throw error;
-  }
-};
-
-export const logOut = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Error signing out", error);
-    throw error;
-  }
-};
 
 // ==========================================
 // Products API

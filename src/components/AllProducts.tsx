@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProducts, getCategories } from '../firebase';
 import { Product } from '../types';
-import { ProductCard } from '../App';
+import { ProductCard } from './ProductCard';
 import { isArabic } from '../lib/textHelpers';
 
 interface AllProductsProps {

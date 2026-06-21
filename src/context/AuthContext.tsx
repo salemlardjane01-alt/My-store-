@@ -30,23 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let userDoc = await getUserProfileDocument(user.uid);
         let role = userDoc?.role || 'user';
         
-        // Auto-promote the specified admin email to admin role
-        if (user.email === 'shoplix000@gmail.com') {
-          role = 'admin';
-          if (userDoc?.role !== 'admin') {
-            try {
-              const { doc, updateDoc } = await import('firebase/firestore');
-              const { db } = await import('../firebase');
-              const userRef = doc(db, 'users', user.uid);
-              await updateDoc(userRef, { role: 'admin' });
-              // Refresh user profile data
-              userDoc = { ...userDoc, role: 'admin' };
-            } catch (err) {
-              console.error("Failed to auto-update admin role in Firestore:", err);
-            }
-          }
-        }
-        
         setCurrentUser({ ...user, role, dbData: userDoc } as AppUser);
       } else {
         setCurrentUser(null);
