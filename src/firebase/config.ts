@@ -87,4 +87,5 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 }
 
 export const SETTINGS_COLLECTION = 'settings';
+export const ORDERS_COLLECTION = 'orders';
 
