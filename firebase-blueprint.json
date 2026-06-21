@@ -120,6 +120,17 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["wilayaId", "wilayaName", "homePrice", "deskPrice", "enabled"]
+    },
+    "ColorPreset": {
+      "title": "ColorPreset",
+      "description": "Global presets of colors and HEX codes used for product tagging",
+      "type": "object",
+      "properties": {
+        "colorName": { "type": "string" },
+        "colorCode": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["colorName", "colorCode"]
     }
   },
   "firestore": {
@@ -158,6 +169,10 @@
     "shipping_rates/{wilayaId}": {
       "schema": "ShippingRate",
       "description": "Individual shipping rates per Algerian Wilaya"
+    },
+    "colors/{colorId}": {
+      "schema": "ColorPreset",
+      "description": "Global presets of color choices for storefront product listings"
     }
   }
 }

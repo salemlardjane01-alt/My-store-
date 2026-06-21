@@ -78,5 +78,11 @@ service cloud.firestore {
       allow read: if true; // Publicly readable to query rates during checkout
       allow write: if isAdmin(); // Only Admin can update shipping rates
     }
+
+    // Colors Collection (Global color presets)
+    match /colors/{colorId} {
+      allow read: if true; // Publicly readable for products and options display
+      allow write: if isAdmin(); // Only Admin can add, update or delete color presets
+    }
   }
 }
