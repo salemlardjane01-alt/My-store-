@@ -3,6 +3,7 @@ import { ArrowLeft, Check, Loader2, Package } from 'lucide-react';
 import { getProductById, createOrder, getShippingRates, getDeliveryProvidersSettings } from '../firebase';
 import { Product } from '../types';
 import { algeriaWilayas } from '../data/algeriaCities';
+import { isArabic } from '../lib/textHelpers';
 
 const colorFallbackMap: Record<string, string> = {
   oatmeal: '#E0D4C3',
@@ -820,8 +821,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
           )}
 
           {/* Title & Price */}
-          <div className={`flex justify-between items-start gap-4 mb-3 ${/[\u0600-\u06FF]/.test(product.name || product.title || '') ? 'flex-row-reverse' : ''}`}>
-            <h2 className={`font-serif text-3xl text-brand-text tracking-tight leading-tight flex-1 ${/[\u0600-\u06FF]/.test(product.name || product.title || '') ? 'text-right' : 'text-left'}`}>
+          <div className={`flex justify-between items-start gap-4 mb-3 ${isArabic(product.name || product.title || '') ? 'flex-row-reverse' : ''}`}>
+            <h2 className={`font-serif text-3xl text-brand-text tracking-tight leading-tight flex-1 ${isArabic(product.name || product.title || '') ? 'text-right' : 'text-left'}`}>
               {product.name || product.title}
             </h2>
             <div className="shrink-0 flex flex-col items-end">
@@ -846,7 +847,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
           {/* Description */}
           <div className="mb-8_">
             <h4 className="text-[12px] uppercase tracking-wider font-semibold text-neutral-400 mb-2">Description</h4>
-            <p className={`text-[14px] text-neutral-600 leading-relaxed font-sans font-normal whitespace-pre-wrap mb-6 ${/[\u0600-\u06FF]/.test(product.description || '') ? 'text-right' : 'text-left'}`}>
+            <p className={`text-[14px] text-neutral-600 leading-relaxed font-sans font-normal whitespace-pre-wrap mb-6 ${isArabic(product.description || '') ? 'text-right' : 'text-left'}`}>
               {product.description || 'No description provided for this classic item.'}
             </p>
           </div>

@@ -153,10 +153,10 @@ const Hero = ({ onCtaClick }: { onCtaClick: (categoryId: string) => void }) => {
   const imageUrl = settings?.imageUrl;
   const ctaLinkValue = settings?.ctaLink || 'all';
 
-  const isBadgeArabic = /[\u0600-\u06FF]/.test(badgeText || '');
-  const isTitleArabic = /[\u0600-\u06FF]/.test(titleText || '');
-  const isDescArabic = /[\u0600-\u06FF]/.test(descriptionText || '');
-  const isCtaArabic = /[\u0600-\u06FF]/.test(buttonText || '');
+  const isBadgeArabic = isArabic(badgeText || '');
+  const isTitleArabic = isArabic(titleText || '');
+  const isDescArabic = isArabic(descriptionText || '');
+  const isCtaArabic = isArabic(buttonText || '');
 
   if (loading) {
     return (

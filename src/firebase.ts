@@ -28,7 +28,8 @@ import {
   createUserProfileDocument, 
   signInWithGoogle, 
   logOut, 
-  USERS_COLLECTION 
+  USERS_COLLECTION,
+  getUsers
 } from './firebase/auth';
 
 export type { FirestoreErrorInfo } from './firebase/config';
@@ -38,7 +39,8 @@ export {
   createUserProfileDocument, 
   signInWithGoogle, 
   logOut, 
-  USERS_COLLECTION 
+  USERS_COLLECTION,
+  getUsers
 };
 
 import { 
@@ -193,14 +195,4 @@ export {
   getOrderByNumberOrId,
   updateOrder,
   deleteOrder
-};
-
-export const getUsers = async () => {
-  try {
-    const q = query(collection(db, USERS_COLLECTION), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, USERS_COLLECTION);
-  }
 };

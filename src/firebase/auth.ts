@@ -1,5 +1,5 @@
 import { signInWithPopup, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, query, collection, orderBy, getDocs } from 'firebase/firestore';
 import { db, auth, googleProvider, handleFirestoreError, OperationType } from './config';
 
 export const USERS_COLLECTION = 'users';
@@ -61,5 +61,15 @@ export const logOut = async () => {
   } catch (error) {
     console.error("Error signing out", error);
     throw error;
+  }
+};
+
+export const getUsers = async () => {
+  try {
+    const q = query(collection(db, USERS_COLLECTION), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, USERS_COLLECTION);
   }
 };
