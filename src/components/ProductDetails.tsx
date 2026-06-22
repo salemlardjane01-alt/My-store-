@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Check, Loader2, Package } from 'lucide-react';
 import { getProductById, createOrder, getShippingRates, getDeliveryProvidersSettings } from '../firebase';
-import { Product } from '../types';
+import { Product, Order } from '../types';
 import { algeriaWilayas } from '../data/algeriaCities';
 import { isArabic } from '../lib/textHelpers';
 import { PriceDisplay } from './PriceDisplay';
@@ -694,7 +694,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
             size: item.size || null
           }));
 
-      const orderData = {
+      const orderData: Omit<Order, 'id'> = {
         customerInfo: {
           fullName: trimmedName,
           phone: trimmedPhone,

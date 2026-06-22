@@ -33,6 +33,8 @@ export interface Product {
       bundlePrice: number;
     }>;
   };
+  discountPercentage?: number;
+  categoryId?: string;
 }
 
 export interface CartItem extends Product {
@@ -102,9 +104,13 @@ export interface Order {
     quantity: number;
     size?: string;
     color?: string;
+    selectedSize?: string | null;
+    selectedColor?: string | null;
+    image?: string | null;
+    bundleItems?: Array<{ color: string | null; size: string | null }>;
   }>;
   totalPrice: number;
-  deliveryType: 'home' | 'desk';
+  deliveryType: 'Home Delivery' | 'Office Pickup';
   deliveryFee: number;
   createdAt?: any;
   bundleEnabled?: boolean;
@@ -120,6 +126,12 @@ export interface Order {
     botToken: string;
     chatId: string;
   };
+  status?: string;
+  paymentMethod?: string;
+  bundleItems?: any[];
+  cancellationReason?: string;
+  archived?: boolean;
+  analyticsAppliedStatus?: string;
 }
 
 export interface DeliveryProvider {

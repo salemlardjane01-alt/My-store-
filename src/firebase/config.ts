@@ -20,7 +20,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const auth = getAuth(app);
 
 let dbInstance;
 try {
@@ -43,8 +43,16 @@ try {
   }
 }
 
-export const db = dbInstance;
-export const storage = getStorage(app);
+const db = dbInstance;
+
+let _storageInstance: ReturnType<typeof getStorage> | null = null;
+export const getStorageInstance = () => {
+  if (!_storageInstance) {
+    _storageInstance = getStorage(app);
+  }
+  return _storageInstance;
+};
+export { db, auth };
 export const googleProvider = new GoogleAuthProvider();
 
 export enum OperationType {

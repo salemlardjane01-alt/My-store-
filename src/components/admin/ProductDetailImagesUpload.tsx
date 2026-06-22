@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { uploadProductImage, deleteProductImageByUrl } from '../../firebase';
+import { uploadProductImage, deleteProductImageByUrl, getStorageInstance } from '../../firebase';
 import { Upload, Trash2, ArrowUp, ArrowDown, Loader2, Image as ImageIcon, X } from 'lucide-react';
 
 interface ProductDetailImagesUploadProps {

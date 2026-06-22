@@ -22,7 +22,7 @@ import {
   deleteObject 
 } from 'firebase/storage';
 import { saveToLocalCache, getFromLocalCache, invalidateCache } from './lib/cacheHelper';
-import { db, auth, storage, googleProvider, handleFirestoreError, OperationType, SETTINGS_COLLECTION, ORDERS_COLLECTION } from './firebase/config';
+import { db, auth, getStorageInstance, googleProvider, handleFirestoreError, OperationType, SETTINGS_COLLECTION, ORDERS_COLLECTION } from './firebase/config';
 import { 
   getUserProfileDocument, 
   createUserProfileDocument, 
@@ -33,7 +33,7 @@ import {
 } from './firebase/auth';
 
 export type { FirestoreErrorInfo } from './firebase/config';
-export { db, auth, storage, googleProvider, handleFirestoreError, OperationType, SETTINGS_COLLECTION, ORDERS_COLLECTION };
+export { db, auth, getStorageInstance, googleProvider, handleFirestoreError, OperationType, SETTINGS_COLLECTION, ORDERS_COLLECTION };
 export { 
   getUserProfileDocument, 
   createUserProfileDocument, 

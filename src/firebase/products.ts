@@ -15,8 +15,9 @@ import {
   getDownloadURL, 
   deleteObject 
 } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType } from './config';
+import { db, getStorageInstance, handleFirestoreError, OperationType } from './config';
 import { saveToLocalCache, getFromLocalCache, invalidateCache } from '../lib/cacheHelper';
+import { Product } from '../types';
 
 export const PRODUCTS_COLLECTION = 'products';
 
@@ -142,7 +143,7 @@ export const getProductById = async (id: string) => {
   }
 };
 
-export const addProduct = async (productData: any) => {
+export const addProduct = async (productData: Omit<Product, 'id'>) => {
   try {
     const docRef = await addDoc(collection(db, PRODUCTS_COLLECTION), {
       ...productData,
@@ -155,7 +156,7 @@ export const addProduct = async (productData: any) => {
   }
 };
 
-export const updateProduct = async (id: string, productData: any) => {
+export const updateProduct = async (id: string, productData: Partial<Product>) => {
   try {
     const docRef = doc(db, PRODUCTS_COLLECTION, id);
     await updateDoc(docRef, {
@@ -232,7 +233,7 @@ export const uploadImage = async (file: File, folder: string, timeoutMs: number)
       const randomId = Math.random().toString(36).substring(2, 10);
       const fileName = `${Date.now()}_${randomId}.${fileExtension}`;
       const filePath = `${folder}/${fileName}`;
-      const storageRef = ref(storage, filePath);
+      const storageRef = ref(getStorageInstance(), filePath);
       const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       return downloadURL;
@@ -267,7 +268,7 @@ export const deleteProductImageByUrl = async (url: string): Promise<void> => {
   try {
     // If it is a Firebase storage download URL, we can attempt to delete it
     if (url.includes('firebasestorage.googleapis.com')) {
-      const storageRef = ref(storage, url);
+      const storageRef = ref(getStorageInstance(), url);
       await deleteObject(storageRef);
     }
   } catch (error) {

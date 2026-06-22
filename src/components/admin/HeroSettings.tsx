@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getHeroSettings, updateHeroSettings, uploadHeroImage } from '../../firebase';
+import { getHeroSettings, updateHeroSettings, uploadHeroImage, getStorageInstance } from '../../firebase';
 import { HeroSettings } from '../../types';
 import { Upload, Save, Loader2, Sparkles, Trash2, ArrowRight, Image as ImageIcon } from 'lucide-react';
 

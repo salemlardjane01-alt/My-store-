@@ -13,8 +13,9 @@ import {
 import { db, handleFirestoreError, OperationType, ORDERS_COLLECTION } from './config';
 import { sendTelegramNotificationIfNeeded } from './telegram';
 import { applyAnalyticsDeltaInMemory } from './analytics';
+import { Order } from '../types';
 
-export const createOrder = async (orderData: any) => {
+export const createOrder = async (orderData: Omit<Order, 'id'>) => {
   try {
     const result = await runTransaction(db, async (transaction) => {
       const counterRef = doc(db, 'settings', 'counters');
@@ -173,7 +174,7 @@ export const getOrderByNumberOrId = async (searchIdent: string) => {
   }
 };
 
-export const updateOrder = async (id: string, orderData: any) => {
+export const updateOrder = async (id: string, orderData: Partial<Order>) => {
   try {
     await runTransaction(db, async (transaction) => {
       const docRef = doc(db, ORDERS_COLLECTION, id);

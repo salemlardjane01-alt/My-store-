@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { uploadProductImage, deleteProductImageByUrl } from '../../firebase';
+import { uploadProductImage, deleteProductImageByUrl, getStorageInstance } from '../../firebase';
 import { 
   Upload, Trash2, Star, Loader2, Image as ImageIcon, X, 
   RotateCw, Check, Plus, ZoomIn, ZoomOut, Move
