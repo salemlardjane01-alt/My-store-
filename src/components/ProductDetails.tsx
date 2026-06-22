@@ -4,6 +4,7 @@ import { getProductById, createOrder, getShippingRates, getDeliveryProvidersSett
 import { Product } from '../types';
 import { algeriaWilayas } from '../data/algeriaCities';
 import { isArabic } from '../lib/textHelpers';
+import { PriceDisplay } from './PriceDisplay';
 
 const colorFallbackMap: Record<string, string> = {
   oatmeal: '#E0D4C3',
@@ -826,16 +827,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
               {product.name || product.title}
             </h2>
             <div className="shrink-0 flex flex-col items-end">
-              <span className="font-serif text-2xl font-bold text-brand-text inline-flex gap-1" dir="ltr">
-                <span className="text-[14px] font-normal opacity-90 mt-2">دج</span>
-                <span>{(product.price || 0).toFixed(0)}</span>
-              </span>
+              <PriceDisplay amount={product.price} className="font-serif text-2xl font-bold text-brand-text inline-flex gap-1" currencyClassName="text-[14px] font-normal opacity-90 mt-2" />
               {product.oldPrice && product.oldPrice > product.price && (
                 <div className="flex items-center gap-1.5 mt-1 select-none">
-                  <span className="text-[13px] font-normal text-neutral-400 line-through inline-flex gap-1" dir="ltr">
-                    <span className="text-[11px] font-normal">دج</span>
-                    <span>{product.oldPrice.toFixed(0)}</span>
-                  </span>
+                  <PriceDisplay amount={product.oldPrice} className="text-[13px] font-normal text-neutral-400 line-through inline-flex gap-1" currencyClassName="text-[11px] font-normal" />
                   <span className="bg-red-50 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full border border-red-200/20">
                     -{Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
                   </span>
@@ -1405,26 +1400,17 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
                 
                 <div className="flex justify-between text-[13px] text-neutral-600" dir="rtl">
                   <span>سعر المنتج</span>
-                  <span className="inline-flex gap-1" dir="ltr">
-                    <span>دج</span>
-                    <span>{productPrice.toFixed(0)}</span>
-                  </span>
+                  <PriceDisplay amount={productPrice} className="inline-flex gap-1" />
                 </div>
 
                 <div className="flex justify-between text-[13px] text-neutral-600" dir="rtl">
                   <span>سعر التوصيل</span>
-                  <span className="inline-flex gap-1" dir="ltr">
-                    <span>دج</span>
-                    <span>{deliveryFee.toFixed(0)}</span>
-                  </span>
+                  <PriceDisplay amount={deliveryFee} className="inline-flex gap-1" />
                 </div>
 
                 <div className="flex justify-between text-[14px] font-semibold text-brand-text border-t border-dashed border-neutral-200 pt-2 mt-1" dir="rtl">
                   <span>المجموع الإجمالي</span>
-                  <span className="inline-flex gap-1" dir="ltr">
-                    <span>دج</span>
-                    <span>{totalPrice.toFixed(0)}</span>
-                  </span>
+                  <PriceDisplay amount={totalPrice} className="inline-flex gap-1" />
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { isArabic } from '../lib/textHelpers';
+import { PriceDisplay } from './PriceDisplay';
 
 export interface ProductCardProps extends Product {
   onSelect?: () => void;
@@ -90,15 +91,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo((props) => {
       <div className={`flex justify-between items-start gap-2 mb-1 px-1 ${isTitleArabic ? 'flex-row-reverse' : ''}`}>
         <h3 className={`text-[15px] font-medium leading-snug text-brand-text flex-1 line-clamp-2 ${isTitleArabic ? 'text-right' : 'text-left'}`} dir={isTitleArabic ? 'rtl' : 'ltr'}>{displayTitle}</h3>
         <div className="shrink-0 flex flex-col items-end">
-          <span className="text-[15px] font-bold text-brand-text inline-flex gap-1" dir="ltr">
-            <span className="text-[11px] font-normal opacity-90 mt-0.5">دج</span>
-            <span>{(price || 0).toFixed(0)}</span>
-          </span>
+          <PriceDisplay amount={price} className="text-[15px] font-bold text-brand-text inline-flex gap-1" currencyClassName="text-[11px] font-normal opacity-90 mt-0.5" />
           {hasDiscount && (
-            <span className="text-[11px] text-neutral-400 line-through inline-flex gap-1 mt-0.5" dir="ltr">
-              <span className="text-[9px] mt-0.5">دج</span>
-              <span>{oldPrice.toFixed(0)}</span>
-            </span>
+            <PriceDisplay amount={oldPrice} className="text-[11px] text-neutral-400 line-through inline-flex gap-1 mt-0.5" currencyClassName="text-[9px] mt-0.5" />
           )}
         </div>
       </div>

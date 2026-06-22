@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Search, X, Loader2, ArrowRight } from 'lucide-react';
 import { getProducts } from '../firebase';
 import { Product } from '../types';
+import { PriceDisplay } from './PriceDisplay';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -222,16 +223,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
                     </h5>
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex flex-col">
-                        <span className="font-serif text-[14px] text-brand-text font-medium inline-flex gap-1" dir="ltr">
-                          <span>دج</span>
-                          <span>{(product.price || 0).toFixed(0)}</span>
-                        </span>
+                        <PriceDisplay amount={product.price} className="font-serif text-[14px] text-brand-text font-medium inline-flex gap-1" />
                         {product.oldPrice && product.oldPrice > product.price && (
                           <div className="flex items-center gap-1 mt-0.5 select-none" dir="rtl">
-                            <span className="text-[11px] text-neutral-400 line-through inline-flex gap-1" dir="ltr">
-                              <span>دج</span>
-                              <span>{product.oldPrice.toFixed(0)}</span>
-                            </span>
+                            <PriceDisplay amount={product.oldPrice} className="text-[11px] text-neutral-400 line-through inline-flex gap-1" />
                             <span className="bg-red-50 text-red-600 text-[9px] font-bold px-1 rounded">
                               -{Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
                             </span>

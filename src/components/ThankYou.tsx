@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { CheckCircle2, ArrowRight, ShoppingBag } from 'lucide-react';
+import { PriceDisplay } from './PriceDisplay';
 
 interface ThankYouProps {
   productName?: string;
@@ -63,10 +64,7 @@ export const ThankYou: React.FC<ThankYouProps> = ({ productName, totalPrice, pho
 
           <div className="flex justify-between items-center text-[14px] text-brand-text font-bold border-t border-dashed border-neutral-200 pt-2.5 mt-1" dir="rtl">
             <span className="font-sans">السعر الإجمالي:</span>
-            <span className="font-serif inline-flex gap-1 text-left" dir="ltr">
-              <span>دج</span>
-              <span>{(totalPrice || 0).toFixed(0)}</span>
-            </span>
+            <PriceDisplay amount={totalPrice || 0} className="font-serif inline-flex gap-1 text-left" />
           </div>
         </div>
 
