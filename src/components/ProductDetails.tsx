@@ -274,12 +274,27 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
   // Gallery active image
   const [activeImage, setActiveImage] = useState<string>('');
 
+  // Flash Bundle Offers calculations
+  const startDateStr = product?.flashBundle?.startDate;
+  const endDateStr = product?.flashBundle?.endDate;
+  const startDate = startDateStr ? new Date(startDateStr) : null;
+  const endDate = endDateStr ? new Date(endDateStr) : null;
+
+  const isFlashBundleActive = !!(
+    product?.flashBundle?.enabled &&
+    product?.flashBundle?.tiers &&
+    product?.flashBundle?.tiers.length > 0 &&
+    (!startDate || now >= startDate) &&
+    (!endDate || now < endDate)
+  );
+
   useEffect(() => {
+    if (!isFlashBundleActive) return;
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isFlashBundleActive]);
   
   // Form validation/submit states
   const [showErrorMsg, setShowErrorMsg] = useState(false);
@@ -422,19 +437,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
     ? (resolvedRateObj && resolvedRateObj.deskPrice !== undefined ? Number(resolvedRateObj.deskPrice) : selectedWilayaObj.shippingPickup) 
     : 0;
 
-  // Flash Bundle Offers calculations
-  const startDateStr = product.flashBundle?.startDate;
-  const endDateStr = product.flashBundle?.endDate;
-  const startDate = startDateStr ? new Date(startDateStr) : null;
-  const endDate = endDateStr ? new Date(endDateStr) : null;
-
-  const isFlashBundleActive = !!(
-    product.flashBundle?.enabled &&
-    product.flashBundle.tiers &&
-    product.flashBundle.tiers.length > 0 &&
-    (!startDate || now >= startDate) &&
-    (!endDate || now < endDate)
-  );
+  // Flash Bundle Offers calculations are defined above the loading/error screens check to serve the active timer hook.
 
   const activeTiers = isFlashBundleActive ? (product.flashBundle?.tiers || []) : [];
 

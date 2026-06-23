@@ -52,7 +52,8 @@ service cloud.firestore {
     // Analytics Collection
     match /analytics/{analyticsId} {
       allow read: if isAdmin();
-      allow create, update: if true; // Let client-side guest checkouts update pre-aggregated statistics during order creation transaction
+      allow create, update: if analyticsId == 'dashboard'
+        && request.resource.data.keys().hasOnly(['initialized', 'globalStats', 'dailyStats', 'logs']);
     }
 
     // Settings Collection (Hero configuration settings)
