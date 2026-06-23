@@ -744,7 +744,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
       });
     } catch (err) {
       console.error("Order verification failed:", err);
-      alert("Something went wrong while confirming your order. Please try again.");
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes("STOCK_INSUFFICIENT")) {
+        alert("عذراً، الكمية المطلوبة غير متوفرة في المخزون حالياً.\nSorry, the requested quantity is not available in stock.");
+      } else {
+        alert("Something went wrong while confirming your order. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

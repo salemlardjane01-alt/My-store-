@@ -8,7 +8,8 @@ import {
   query, 
   orderBy, 
   runTransaction, 
-  where 
+  where,
+  increment
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, ORDERS_COLLECTION } from './config';
 import { sendTelegramNotificationIfNeeded } from './telegram';
@@ -26,6 +27,11 @@ export const createOrder = async (orderData: Omit<Order, 'id'>) => {
       const counterSnap = await transaction.get(counterRef);
       const analyticsSnap = await transaction.get(analyticsRef);
       const settingsSnap = await transaction.get(settingsRef);
+      
+      const productId = orderData.items?.[0]?.id;
+      const quantity = orderData.items?.[0]?.quantity || 1;
+      const productRef = productId ? doc(db, 'products', productId) : null;
+      const productSnap = productRef ? await transaction.get(productRef) : null;
       
       let nextNum = 1001;
       if (counterSnap.exists()) {
@@ -97,8 +103,18 @@ export const createOrder = async (orderData: Omit<Order, 'id'>) => {
       // Compute in-memory update
       applyAnalyticsDeltaInMemory(analytics, { ...enrichedOrderData, createdAt: new Date() }, 1);
       
+      if (productSnap && productSnap.exists()) {
+        const currentStock = productSnap.data().stock;
+        if (typeof currentStock === 'number' && currentStock < quantity) {
+          throw new Error(`STOCK_INSUFFICIENT:${productId}`);
+        }
+      }
+      
       // 2. Perform ALL writes afterwards
       transaction.set(orderRef, enrichedOrderData);
+      if (productRef && productSnap && productSnap.exists() && typeof productSnap.data().stock === 'number') {
+        transaction.update(productRef, { stock: increment(-quantity) });
+      }
       transaction.set(counterRef, { lastOrderNumber: nextNum }, { merge: true });
       transaction.set(analyticsRef, analytics);
       if (hasMultipleBots) {
