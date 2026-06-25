@@ -24,16 +24,6 @@ export const getAlgiersDateComponents = (date: Date) => {
   }
 };
 
-export const getAlgiersWeekString = (date: Date): string => {
-  const { year, month, day } = getAlgiersDateComponents(date);
-  const d = new Date(Number(year), Number(month) - 1, Number(day));
-  const dayNum = d.getDay() || 7;
-  d.setDate(d.getDate() + 4 - dayNum);
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-};
-
 export const applyAnalyticsDeltaInMemory = (analytics: any, orderData: any, coefficient: number = 1) => {
   if (!orderData) return;
   
@@ -151,91 +141,6 @@ export const applyAnalyticsDeltaInMemory = (analytics: any, orderData: any, coef
   if (analytics.logs.length > 25) {
     analytics.logs = analytics.logs.slice(0, 25);
   }
-};
-
-export const updateAnalyticsForOrder = async (transaction: any, orderData: any, coefficient: number = 1) => {
-  // Input integrity guard - reject orders that contain missing, corrupt, or invalid critical fields
-  if (!orderData) return;
-  
-  const status = orderData.status || 'pending';
-  const totalPrice = Number(orderData.totalPrice);
-  
-  // Validation checks:
-  if (isNaN(totalPrice) || totalPrice < 0) {
-    console.warn(`[Analytics Guard] Ignored order with invalid price: ${orderData.totalPrice}`);
-    return;
-  }
-  const allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-  if (!allowedStatuses.includes(status)) {
-    console.warn(`[Analytics Guard] Ignored order with unknown status: ${status}`);
-    return;
-  }
-  if (!Array.isArray(orderData.items) || orderData.items.length === 0) {
-    console.warn(`[Analytics Guard] Ignored order with missing or empty items`);
-    return;
-  }
-
-  const analyticsRef = doc(db, 'analytics', 'dashboard');
-  const analyticsSnap = await transaction.get(analyticsRef);
-  
-  let analytics: any = {
-    initialized: true,
-    globalStats: { 
-      totalSales: 0, 
-      ordersCount: 0, 
-      averageOrderValue: 0, 
-      pendingRevenue: 0, 
-      pendingOrdersCount: 0,
-      grossSales: 0,
-      shippedRevenue: 0,
-      deliveredRevenue: 0,
-      productRevenue: 0,
-      shippingRevenue: 0,
-      grossRevenue: 0,
-      netProfit: 0,
-      cancelledOrdersCount: 0,
-      cancelledRevenueLost: 0,
-      cancellationRate: 0
-    },
-    dailyStats: {},
-    weeklyStats: {},
-    wilayaStats: {},
-    productStats: {},
-    logs: [] // High-visibility diagnostic debug audit logs inside the doc
-  };
-  
-  if (analyticsSnap.exists()) {
-    const existingData = analyticsSnap.data();
-    analytics = {
-      initialized: existingData.initialized !== undefined ? existingData.initialized : true,
-      globalStats: {
-        totalSales: Number(existingData.globalStats?.totalSales) || 0,
-        ordersCount: Number(existingData.globalStats?.ordersCount) || 0,
-        averageOrderValue: Number(existingData.globalStats?.averageOrderValue) || 0,
-        pendingRevenue: Number(existingData.globalStats?.pendingRevenue) || 0,
-        pendingOrdersCount: Number(existingData.globalStats?.pendingOrdersCount) || 0,
-        grossSales: Number(existingData.globalStats?.grossSales) ?? Number(existingData.globalStats?.totalSales) ?? 0,
-        shippedRevenue: Number(existingData.globalStats?.shippedRevenue) || 0,
-        deliveredRevenue: Number(existingData.globalStats?.deliveredRevenue) || 0,
-        productRevenue: Number(existingData.globalStats?.productRevenue) ?? Number(existingData.globalStats?.totalSales) ?? 0,
-        shippingRevenue: Number(existingData.globalStats?.shippingRevenue) || 0,
-        grossRevenue: Number(existingData.globalStats?.grossRevenue) ?? Number(existingData.globalStats?.totalSales) ?? 0,
-        netProfit: Number(existingData.globalStats?.netProfit) ?? Number(existingData.globalStats?.totalSales) ?? 0,
-        cancelledOrdersCount: Number(existingData.globalStats?.cancelledOrdersCount) || 0,
-        cancelledRevenueLost: Number(existingData.globalStats?.cancelledRevenueLost) || 0,
-        cancellationRate: Number(existingData.globalStats?.cancellationRate) || 0
-      },
-      dailyStats: existingData.dailyStats || {},
-      weeklyStats: existingData.weeklyStats || {},
-      wilayaStats: existingData.wilayaStats || {},
-      productStats: existingData.productStats || {},
-      logs: existingData.logs || []
-    };
-  }
-
-  applyAnalyticsDeltaInMemory(analytics, orderData, coefficient);
-
-  transaction.set(analyticsRef, analytics);
 };
 
 export const emergencyRecalculateAnalytics = async () => {

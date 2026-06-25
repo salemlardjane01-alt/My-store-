@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
-import { auth, getUserProfileDocument } from '../firebase';
+import { auth, checkIsAdmin } from '../firebase';
 
 export interface AppUser extends User {
-  role?: string;
-  dbData?: any;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -27,10 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setLoading(true);
       if (user) {
-        let userDoc = await getUserProfileDocument(user.uid);
-        let role = userDoc?.role || 'user';
-        
-        setCurrentUser({ ...user, role, dbData: userDoc } as AppUser);
+        const isAdmin = await checkIsAdmin(user.uid);
+        setCurrentUser({ ...user, isAdmin } as AppUser);
       } else {
         setCurrentUser(null);
       }

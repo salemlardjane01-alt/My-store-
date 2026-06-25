@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onNavigate, o
         }`}
       >
         <div className="flex flex-col pt-12 px-6">
-          {currentUser && currentUser.role === 'admin' && (
+          {currentUser && currentUser.isAdmin && (
              <button 
                onClick={() => {
                  onNavigate?.('admin');

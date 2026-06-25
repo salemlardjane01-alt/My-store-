@@ -1,27 +1,3 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  setDoc,
-  serverTimestamp,
-  query,
-  orderBy,
-  runTransaction,
-  writeBatch,
-  where,
-  limit
-} from 'firebase/firestore';
-import { 
-  ref, 
-  uploadBytes, 
-  getDownloadURL, 
-  deleteObject 
-} from 'firebase/storage';
-import { saveToLocalCache, getFromLocalCache, invalidateCache } from './lib/cacheHelper';
 import { db, auth, getStorageInstance, googleProvider, handleFirestoreError, OperationType, SETTINGS_COLLECTION, ORDERS_COLLECTION } from './firebase/config';
 import { 
   getUserProfileDocument, 
@@ -29,7 +5,8 @@ import {
   signInWithGoogle, 
   logOut, 
   USERS_COLLECTION,
-  getUsers
+  getUsers,
+  checkIsAdmin
 } from './firebase/auth';
 
 export type { FirestoreErrorInfo } from './firebase/config';
@@ -40,7 +17,8 @@ export {
   signInWithGoogle, 
   logOut, 
   USERS_COLLECTION,
-  getUsers
+  getUsers,
+  checkIsAdmin
 };
 
 import { 
@@ -83,8 +61,7 @@ import {
   updateProduct, 
   deleteProduct,
   uploadProductImage,
-  deleteProductImageByUrl,
-  uploadImage
+  deleteProductImageByUrl
 } from './firebase/products';
 
 export {
@@ -165,18 +142,14 @@ export {
 // ==========================================
 import {
   getAlgiersDateComponents,
-  getAlgiersWeekString,
   applyAnalyticsDeltaInMemory,
-  updateAnalyticsForOrder,
   emergencyRecalculateAnalytics,
   ensureAnalyticsSeeded
 } from './firebase/analytics';
 
 export {
   getAlgiersDateComponents,
-  getAlgiersWeekString,
   applyAnalyticsDeltaInMemory,
-  updateAnalyticsForOrder,
   emergencyRecalculateAnalytics,
   ensureAnalyticsSeeded
 };
@@ -184,7 +157,6 @@ export {
 import {
   createOrder,
   getOrders,
-  getOrderByNumberOrId,
   updateOrder,
   deleteOrder
 } from './firebase/orders';
@@ -192,7 +164,6 @@ import {
 export {
   createOrder,
   getOrders,
-  getOrderByNumberOrId,
   updateOrder,
   deleteOrder
 };

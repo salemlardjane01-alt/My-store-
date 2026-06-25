@@ -73,3 +73,14 @@ export const getUsers = async () => {
     handleFirestoreError(error, OperationType.LIST, USERS_COLLECTION);
   }
 };
+
+export const checkIsAdmin = async (uid: string): Promise<boolean> => {
+  if (!uid) return false;
+  try {
+    const adminRef = doc(db, 'admins', uid);
+    const snap = await getDoc(adminRef);
+    return snap.exists();
+  } catch {
+    return false;
+  }
+};

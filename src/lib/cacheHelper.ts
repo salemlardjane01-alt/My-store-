@@ -26,15 +26,6 @@ export function getFromLocalCache<T>(key: string): CacheItem<T> | null {
   }
 }
 
-export function getCacheDataIfValid<T>(key: string, ttlMs: number): T | null {
-  const item = getFromLocalCache<T>(key);
-  if (!item) return null;
-  if (Date.now() - item.timestamp < ttlMs) {
-    return item.data;
-  }
-  return null;
-}
-
 export const invalidateCache = (key: string): void => {
   try {
     localStorage.removeItem(key);
