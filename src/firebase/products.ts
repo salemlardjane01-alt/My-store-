@@ -7,7 +7,9 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  serverTimestamp 
+  serverTimestamp,
+  where,
+  limit
 } from 'firebase/firestore';
 import { 
   ref, 
@@ -97,15 +99,13 @@ export const getProductsWithLimit = async (limitNum: number, categoryId: string 
       return filtered.slice(0, limitNum);
     }
 
-    const data = await getProducts(forceFresh);
-    if (data) {
-      let filtered = data;
-      if (categoryId && categoryId !== 'all') {
-        filtered = data.filter((p: any) => p.categoryId === categoryId);
-      }
-      return filtered.slice(0, limitNum);
-    }
-    return [];
+    const constraints = categoryId && categoryId !== 'all'
+      ? [where('categoryId', '==', categoryId), limit(limitNum)]
+      : [limit(limitNum)];
+    const targetedQuery = query(collection(db, PRODUCTS_COLLECTION), ...constraints);
+    const snapshot = await getDocs(targetedQuery);
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return data;
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, PRODUCTS_COLLECTION);
     return [];
