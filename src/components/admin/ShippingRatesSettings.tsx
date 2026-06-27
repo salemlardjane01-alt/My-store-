@@ -5,15 +5,15 @@ import { algeriaWilayas, Wilaya as StaticWilaya } from '../../data/algeriaCities
 import { Loader2, Search, Save, Check, Ban, Globe, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const AdminShippingRatesSettings: React.FC = () => {
-  const [rates, setRates] = useState<Record<number, ShippingRate>>({});
+  const [rates, setRates] = useState<Record<string, ShippingRate>>({});
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<number | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Status for inline saves to provide beautiful visual feedback
-  const [saveStatus, setSaveStatus] = useState<Record<number, 'success' | 'error' | null>>({});
+  const [saveStatus, setSaveStatus] = useState<Record<string, 'success' | 'error' | null>>({});
 
   useEffect(() => {
     const fetchRates = async () => {
@@ -23,12 +23,12 @@ export const AdminShippingRatesSettings: React.FC = () => {
         const firestoreRates = await getShippingRates();
         
         // Build a lookup map of rates from Firestore
-        const ratesMap: Record<number, ShippingRate> = {};
+        const ratesMap: Record<string, ShippingRate> = {};
         
         // Pre-populate with all 58 Wilayas from static data so they are all present
         algeriaWilayas.forEach((w) => {
           ratesMap[w.id] = {
-            wilayaId: w.id,
+            wilayaId: String(w.id),
             wilayaName: w.name,
             wilayaNameEn: w.nameEn,
             homePrice: w.shippingHome,
@@ -40,7 +40,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
         // Overlay with Firestore customized rates if available
         if (firestoreRates && firestoreRates.length > 0) {
           firestoreRates.forEach((fr: any) => {
-            const wId = Number(fr.wilayaId);
+            const wId = String(fr.wilayaId);
             if (ratesMap[wId]) {
               ratesMap[wId] = {
                 ...ratesMap[wId],
@@ -64,7 +64,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
     fetchRates();
   }, []);
 
-  const handlePriceChange = (wilayaId: number, field: 'homePrice' | 'deskPrice', value: string) => {
+  const handlePriceChange = (wilayaId: string, field: 'homePrice' | 'deskPrice', value: string) => {
     const numVal = value === '' ? 0 : Number(value);
     if (isNaN(numVal)) return;
 
@@ -82,7 +82,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
     }
   };
 
-  const handleToggleEnabled = (wilayaId: number) => {
+  const handleToggleEnabled = (wilayaId: string) => {
     setRates(prev => ({
       ...prev,
       [wilayaId]: {
@@ -97,7 +97,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
     }
   };
 
-  const handleSaveRow = async (wilayaId: number) => {
+  const handleSaveRow = async (wilayaId: string) => {
     try {
       setSavingId(wilayaId);
       setError(null);
@@ -134,10 +134,10 @@ export const AdminShippingRatesSettings: React.FC = () => {
   };
 
   const handleResetToDefaults = () => {
-    const resetMap: Record<number, ShippingRate> = {};
+    const resetMap: Record<string, ShippingRate> = {};
     algeriaWilayas.forEach((w) => {
       resetMap[w.id] = {
-        wilayaId: w.id,
+        wilayaId: String(w.id),
         wilayaName: w.name,
         wilayaNameEn: w.nameEn,
         homePrice: w.shippingHome,
@@ -288,7 +288,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
                           disabled={!rate.enabled}
                           value={rate.homePrice === 0 ? '' : rate.homePrice}
                           placeholder="0"
-                          onChange={(e) => handlePriceChange(staticW.id, 'homePrice', e.target.value)}
+                          onChange={(e) => handlePriceChange(String(staticW.id), 'homePrice', e.target.value)}
                           className="w-full text-center px-2 py-1.5 border border-neutral-200 focus:border-brand-text rounded-lg bg-white outline-none font-medium disabled:bg-neutral-50 disabled:opacity-60"
                         />
                       </td>
@@ -301,7 +301,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
                           disabled={!rate.enabled}
                           value={rate.deskPrice === 0 ? '' : rate.deskPrice}
                           placeholder="0"
-                          onChange={(e) => handlePriceChange(staticW.id, 'deskPrice', e.target.value)}
+                          onChange={(e) => handlePriceChange(String(staticW.id), 'deskPrice', e.target.value)}
                           className="w-full text-center px-2 py-1.5 border border-neutral-200 focus:border-brand-text rounded-lg bg-white outline-none font-medium disabled:bg-neutral-50 disabled:opacity-60"
                         />
                       </td>
@@ -310,7 +310,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
                       <td className="py-3.5 px-4 text-center">
                         <button
                           type="button"
-                          onClick={() => handleToggleEnabled(staticW.id)}
+                          onClick={() => handleToggleEnabled(String(staticW.id))}
                           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                             rate.enabled ? 'bg-brand-text' : 'bg-neutral-200'
                           }`}
@@ -335,7 +335,7 @@ export const AdminShippingRatesSettings: React.FC = () => {
                         <button
                           type="button"
                           disabled={isSaving}
-                          onClick={() => handleSaveRow(staticW.id)}
+                          onClick={() => handleSaveRow(String(staticW.id))}
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer ${
                             rowStatus === 'success'
                               ? 'bg-emerald-500 hover:bg-emerald-600 text-white'

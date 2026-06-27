@@ -28,12 +28,12 @@ export const ShippingRatesModal: React.FC<ShippingRatesModalProps> = ({ isOpen, 
         const firestoreRates = await getShippingRates();
         
         // Lookup map
-        const ratesMap: Record<number, ShippingRate> = {};
+        const ratesMap: Record<string, ShippingRate> = {};
         
         // 1. Pre-populate with all 58 Wilayas using default static pricing
         algeriaWilayas.forEach((w) => {
           ratesMap[w.id] = {
-            wilayaId: w.id,
+            wilayaId: String(w.id),
             wilayaName: w.name,
             wilayaNameEn: w.nameEn,
             homePrice: w.shippingHome,
@@ -45,7 +45,7 @@ export const ShippingRatesModal: React.FC<ShippingRatesModalProps> = ({ isOpen, 
         // 2. Overlay custom firestore rates if present
         if (firestoreRates && firestoreRates.length > 0) {
           firestoreRates.forEach((fr: any) => {
-            const wId = Number(fr.wilayaId);
+            const wId = String(fr.wilayaId);
             if (ratesMap[wId]) {
               ratesMap[wId] = {
                 ...ratesMap[wId],
@@ -184,10 +184,10 @@ export const ShippingRatesModal: React.FC<ShippingRatesModalProps> = ({ isOpen, 
                   setError(null);
                   setLoading(true);
                   getShippingRates().then(fr => {
-                    const ratesMap: Record<number, ShippingRate> = {};
+                    const ratesMap: Record<string, ShippingRate> = {};
                     algeriaWilayas.forEach((w) => {
                       ratesMap[w.id] = {
-                        wilayaId: w.id,
+                        wilayaId: String(w.id),
                         wilayaName: w.name,
                         wilayaNameEn: w.nameEn,
                         homePrice: w.shippingHome,
@@ -197,7 +197,7 @@ export const ShippingRatesModal: React.FC<ShippingRatesModalProps> = ({ isOpen, 
                     });
                     if (fr && fr.length > 0) {
                       fr.forEach((r: any) => {
-                        const wId = Number(r.wilayaId);
+                        const wId = String(r.wilayaId);
                         if (ratesMap[wId]) {
                           ratesMap[wId] = {
                             ...ratesMap[wId],
@@ -232,7 +232,7 @@ export const ShippingRatesModal: React.FC<ShippingRatesModalProps> = ({ isOpen, 
                 {/* Wilaya Info */}
                 <div className="col-span-5 text-right flex items-center font-medium pr-1">
                   <span className="text-[12px] font-mono text-neutral-400 w-6 shrink-0 inline-block text-right">
-                    {String(rate.wilayaId).padStart(2, '0')}
+                    {rate.wilayaId.padStart(2, '0')}
                   </span>
                   <span className="text-[14px] text-brand-text truncate mr-1">
                     {rate.wilayaName}

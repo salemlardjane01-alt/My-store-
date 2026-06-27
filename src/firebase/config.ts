@@ -10,7 +10,7 @@ import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || '',
-  authDomain: typeof window !== 'undefined' && (window.location.hostname.includes('shoplix.one') || window.location.hostname.includes('vercel.app'))
+  authDomain: typeof window !== 'undefined' && (window.location.hostname.includes((import.meta as any).env?.VITE_APP_DOMAIN || '') || window.location.hostname.includes('vercel.app'))
     ? window.location.hostname
     : ((import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || ''),
   projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || '',

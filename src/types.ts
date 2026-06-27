@@ -77,7 +77,7 @@ export interface SocialSettings {
 }
 
 export interface ShippingRate {
-  wilayaId: number;
+  wilayaId: string;
   wilayaName: string;
   wilayaNameEn: string;
   homePrice: number;

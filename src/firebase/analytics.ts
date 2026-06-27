@@ -128,7 +128,7 @@ export const applyAnalyticsDeltaInMemory = (analytics: any, orderData: any, coef
 
   // Audit log entry for diagnostics and real-time validation (simplified)
   const logEntry = {
-    id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    id: crypto.randomUUID(),
     orderId: orderData.id || orderData.orderNumber || 'new_order',
     status: status,
     coefficient: coefficient,
@@ -158,7 +158,7 @@ export const emergencyRecalculateAnalytics = async () => {
       },
       dailyStats: {},
       logs: [{
-        id: `recalc-${Date.now()}`,
+        id: crypto.randomUUID(),
         orderId: 'all_reconciled',
         status: 'recalculated_from_scratch',
         coefficient: 1,

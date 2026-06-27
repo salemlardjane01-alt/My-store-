@@ -104,7 +104,7 @@ interface ProductDetailsProps {
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBack, onOrderSuccess }) => {
   const [product, setProduct] = useState<Product | null>(null);
-  const [dbRates, setDbRates] = useState<Record<number, any>>({});
+  const [dbRates, setDbRates] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -231,7 +231,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
       return [];
     }
 
-    const providerSupported = activeProvider.supportedCommunes[String(selectedWilayaObj.id)] || activeProvider.supportedCommunes[selectedWilayaObj.id] || [];
+    const providerSupported = activeProvider.supportedCommunes[String(selectedWilayaObj.id)] || [];
     return baseCommunes.filter(c => providerSupported.includes(c));
   };
 
@@ -239,7 +239,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
   const isOfficePickupAvailableForWilaya = (wilayaObj = selectedWilayaObj) => {
     if (!activeProvider) return false;
     if (!wilayaObj) return true;
-    const list = activeProvider.supportedCommunes[String(wilayaObj.id)] || activeProvider.supportedCommunes[wilayaObj.id];
+    const list = activeProvider.supportedCommunes[String(wilayaObj.id)];
     return Array.isArray(list) && list.length > 0;
   };
 
@@ -260,7 +260,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
 
       if (selectedWilayaObj) {
         if (city) {
-          const supported = activeProvider.supportedCommunes[String(selectedWilayaObj.id)] || activeProvider.supportedCommunes[selectedWilayaObj.id] || [];
+          const supported = activeProvider.supportedCommunes[String(selectedWilayaObj.id)] || [];
           if (!supported.includes(city)) {
             setCity('');
           }
@@ -339,10 +339,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, onBac
         }
 
         // Parse ratesData into dynamic lookup map
-        const tempRates: Record<number, any> = {};
+        const tempRates: Record<string, any> = {};
         if (ratesData && ratesData.length > 0) {
           ratesData.forEach((fr: any) => {
-            const wId = Number(fr.wilayaId);
+            const wId = String(fr.wilayaId);
             if (wId) {
               tempRates[wId] = fr;
             }

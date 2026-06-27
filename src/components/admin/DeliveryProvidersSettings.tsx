@@ -148,7 +148,7 @@ export const AdminDeliveryProvidersSettings: React.FC = () => {
 
     if (isAdding) {
       const newProv: DeliveryProvider = {
-        id: String(Date.now()),
+        id: crypto.randomUUID(),
         name: formName.trim(),
         supportedCommunes: cleanedCommunes,
         active: formActive

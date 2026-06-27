@@ -40,7 +40,7 @@ export const AdminTelegramSettings: React.FC = () => {
           }
           if (initialBots.length === 0) {
             initialBots.push({
-              id: String(Date.now()),
+              id: crypto.randomUUID(),
               botToken: '',
               chatId: '',
             });
@@ -96,7 +96,7 @@ export const AdminTelegramSettings: React.FC = () => {
       const current = prev.bots || [];
       return {
         ...prev,
-        bots: [...current, { id: String(Date.now()), botToken: '', chatId: '' }]
+        bots: [...current, { id: crypto.randomUUID(), botToken: '', chatId: '' }]
       };
     });
     setSuccess(false);

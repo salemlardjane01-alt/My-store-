@@ -61,7 +61,7 @@ export const updateShippingRate = async (rateData: any) => {
   if (!rateData || !rateData.wilayaId) {
     throw new Error('wilayaId is required to update shipping rate');
   }
-  const idStr = String(rateData.wilayaId);
+  const idStr = rateData.wilayaId;
   try {
     const docRef = doc(db, SHIPPING_RATES_COLLECTION, idStr);
     await setDoc(docRef, {
