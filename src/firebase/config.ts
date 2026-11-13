@@ -7,16 +7,22 @@ import {
   persistentMultipleTabManager
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import appletConfig from '../../firebase-applet-config.json';
+
+const env = (import.meta as any).env || {};
+const appDomain = env.VITE_APP_DOMAIN || '';
+const defaultAuthDomain = env.VITE_FIREBASE_AUTH_DOMAIN || appletConfig.authDomain || '';
 
 const firebaseConfig = {
-  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || '',
-  authDomain: typeof window !== 'undefined' && (window.location.hostname.includes((import.meta as any).env?.VITE_APP_DOMAIN || '') || window.location.hostname.includes('vercel.app'))
+  apiKey: env.VITE_FIREBASE_API_KEY || appletConfig.apiKey || '',
+  authDomain: typeof window !== 'undefined' && ((appDomain && window.location.hostname.includes(appDomain)) || window.location.hostname.includes('vercel.app'))
     ? window.location.hostname
-    : ((import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || ''),
-  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || ''
+    : defaultAuthDomain,
+  projectId: env.VITE_FIREBASE_PROJECT_ID || appletConfig.projectId || '',
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || appletConfig.storageBucket || '',
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || appletConfig.messagingSenderId || '',
+  appId: env.VITE_FIREBASE_APP_ID || appletConfig.appId || '',
+  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || appletConfig.measurementId || ''
 };
 
 const app = initializeApp(firebaseConfig);

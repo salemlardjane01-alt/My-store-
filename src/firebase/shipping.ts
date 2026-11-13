@@ -69,7 +69,7 @@ export const updateShippingRate = async (rateData: any) => {
       updatedAt: serverTimestamp()
     }, { merge: true });
     cachedShippingRates = null; // Invalidate memory cache
-    invalidateCache('shoplix_cache_shipping_rates');
+    invalidateCache('lr_store_cache_shipping_rates');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${SHIPPING_RATES_COLLECTION}/${idStr}`);
   }

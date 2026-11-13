@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/__/auth/:path*",
-      "destination": "https://vegetal-0.firebaseapp.com/__/auth/:path*"
+      "destination": "https://lr-store-6d326.firebaseapp.com/__/auth/:path*"
     },
     {
       "source": "/(.*)",

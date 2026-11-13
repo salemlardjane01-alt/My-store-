@@ -27,7 +27,7 @@ let cachedProducts: any[] | null = null;
 
 export const invalidateProductsCache = () => {
   cachedProducts = null;
-  invalidateCache('shoplix_cache_products');
+  invalidateCache('lr_store_cache_products');
 };
 
 export const getProducts = async (forceFresh = false) => {

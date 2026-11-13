@@ -9,7 +9,7 @@ export function saveToLocalCache<T>(key: string, data: T): void {
       data,
       timestamp: Date.now()
     };
-    localStorage.setItem(`shoplix_cache_${key}`, JSON.stringify(item));
+    localStorage.setItem(`lr_store_cache_${key}`, JSON.stringify(item));
   } catch (err) {
     console.warn(`Error saving to localStorage for key: ${key}`, err);
   }
@@ -17,7 +17,7 @@ export function saveToLocalCache<T>(key: string, data: T): void {
 
 export function getFromLocalCache<T>(key: string): CacheItem<T> | null {
   try {
-    const raw = localStorage.getItem(`shoplix_cache_${key}`);
+    const raw = localStorage.getItem(`lr_store_cache_${key}`);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (err) {

@@ -140,7 +140,7 @@
     },
     "products/{productId}": {
       "schema": "Product",
-      "description": "Available products offered on Shoplix"
+      "description": "Available products offered on LR Store"
     },
     "categories/{categoryId}": {
       "schema": "Category",

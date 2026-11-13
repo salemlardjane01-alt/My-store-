@@ -136,7 +136,7 @@ export const AdminSocialSettings: React.FC = () => {
               name="instagram"
               value={settings.instagram}
               onChange={handleChange}
-              placeholder="مثال: https://instagram.com/shoplix"
+              placeholder="مثال: https://instagram.com/lrstore"
               className="w-full px-4 py-3 rounded-xl border border-neutral-200 outline-none focus:border-brand-text text-[14px] transition-colors text-left"
               dir="ltr"
             />
@@ -156,7 +156,7 @@ export const AdminSocialSettings: React.FC = () => {
               name="facebook"
               value={settings.facebook}
               onChange={handleChange}
-              placeholder="مثال: https://facebook.com/shoplix.dz"
+              placeholder="مثال: https://facebook.com/lrstore.dz"
               className="w-full px-4 py-3 rounded-xl border border-neutral-200 outline-none focus:border-brand-text text-[14px] transition-colors text-left"
               dir="ltr"
             />
@@ -176,7 +176,7 @@ export const AdminSocialSettings: React.FC = () => {
               name="telegram"
               value={settings.telegram}
               onChange={handleChange}
-              placeholder="مثال: https://t.me/shoplix_dz"
+              placeholder="مثال: https://t.me/lrstore_dz"
               className="w-full px-4 py-3 rounded-xl border border-neutral-200 outline-none focus:border-brand-text text-[14px] transition-colors text-left"
               dir="ltr"
             />

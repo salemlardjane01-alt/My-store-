@@ -1,6 +1,6 @@
 {
-  "name": "ShopLix",
-  "description": "ShopLix - A sophisticated and modern e-commerce platform.",
+  "name": "LR Store",
+  "description": "LR Store - A sophisticated and modern e-commerce platform.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -73,7 +73,7 @@ export const addCategory = async (categoryData: any) => {
       createdAt: serverTimestamp()
     });
     cachedCategories = null; // Invalidate memory cache
-    invalidateCache('shoplix_cache_categories');
+    invalidateCache('lr_store_cache_categories');
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, CATEGORIES_COLLECTION);
@@ -88,7 +88,7 @@ export const updateCategory = async (id: string, categoryData: any) => {
       updatedAt: serverTimestamp()
     });
     cachedCategories = null; // Invalidate memory cache
-    invalidateCache('shoplix_cache_categories');
+    invalidateCache('lr_store_cache_categories');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${CATEGORIES_COLLECTION}/${id}`);
   }
@@ -99,7 +99,7 @@ export const deleteCategory = async (id: string) => {
     const docRef = doc(db, CATEGORIES_COLLECTION, id);
     await deleteDoc(docRef);
     cachedCategories = null; // Invalidate memory cache
-    invalidateCache('shoplix_cache_categories');
+    invalidateCache('lr_store_cache_categories');
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${CATEGORIES_COLLECTION}/${id}`);
   }
