@@ -1,22 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, getColors, addColorDoc, updateColorDoc, deleteColorDoc, estimateDocumentBytes } from '../../firebase';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getCategories, getColors, addColorDoc, updateColorDoc, deleteColorDoc, estimateDocumentBytes } from '../../firebase';
 import { Edit2, Trash2, Plus, X, Image as ImageIcon, Check, Edit3 } from 'lucide-react';
 import { ProductImageUpload } from './ProductImageUpload';
 import { ProductDetailImagesUpload } from './ProductDetailImagesUpload';
 
 const formatProductSaveError = (err: unknown): string => {
   const raw = err instanceof Error ? err.message : String(err || '');
-  const lower = raw.toLowerCase();
+  let parsed: any = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = null;
+  }
+
+  const baseMessage = parsed?.error || raw;
+  const lower = String(baseMessage).toLowerCase();
+  const projectId = db?.app?.options?.projectId || 'unknown';
+
   if (lower.includes('exceeds the maximum allowed size') || lower.includes('longer than') || lower.includes('payload_too_large')) {
     return 'حجم بيانات وصور المنتج يتجاوز الحد الأقصى المسموح به في Firestore (1 ميجابايت). يحدث ذلك عند تخزين عدة صور مضغوطة داخل قاعدة البيانات لأن Firebase Storage غير مفعل أو محظور. قم بتقليل عدد الصور أو تفعيل قواعد Firebase Storage.';
   }
   if (lower.includes('missing or insufficient permissions') || lower.includes('permission_denied') || lower.includes('permission-denied')) {
-    return 'فشل الحفظ: لا تملك صلاحية تعديل المنتجات في Firestore (تحقق من تسجيل الدخول بحساب المشرف).';
+    const details = parsed
+      ? ` [المشروع: ${projectId} | العملية: ${parsed.operationType} | المسار: ${parsed.path} | البريد: ${parsed.authInfo?.email || 'غير مسجل'} | UID: ${parsed.authInfo?.userId || 'none'}]`
+      : ` [المشروع: ${projectId}]`;
+    return `فشل الحفظ: قاعدة بيانات Firestore في المشروع (${projectId}) ترفض التعديل (Missing or insufficient permissions). إذا كان هذا مشروع Firebase خاص بك، يرجى لصق قواعد firestore.rules ونشرها في Firebase Console > Firestore Database > Rules.${details}`;
   }
   if (lower.includes('invalid-argument')) {
     return 'يوجد حقل غير صالح في بيانات المنتج (تأكد من الأرقام والصور المدخلة).';
   }
-  return `حدث خطأ أثناء حفظ المنتج: ${raw || 'خطأ غير معروف'}`;
+  return `حدث خطأ أثناء حفظ المنتج: ${baseMessage || 'خطأ غير معروف'}`;
 };
 
 const colorFallbackMap: Record<string, string> = {

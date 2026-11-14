@@ -76,7 +76,7 @@ export const getUsers = async () => {
 
 export const checkIsAdmin = async (uid: string): Promise<boolean> => {
   if (!uid) return false;
-  if (auth.currentUser?.email === 'salemlardjane01@gmail.com' && auth.currentUser?.emailVerified) {
+  if (auth.currentUser?.email?.toLowerCase() === 'salemlardjane01@gmail.com' && auth.currentUser?.emailVerified) {
     return true;
   }
   try {
