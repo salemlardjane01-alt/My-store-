@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, getColors, addColorDoc, updateColorDoc, deleteColorDoc } from '../../firebase';
+import { getProducts, addProduct, updateProduct, deleteProduct, getCategories, getColors, addColorDoc, updateColorDoc, deleteColorDoc, estimateDocumentBytes } from '../../firebase';
 import { Edit2, Trash2, Plus, X, Image as ImageIcon, Check, Edit3 } from 'lucide-react';
 import { ProductImageUpload } from './ProductImageUpload';
 import { ProductDetailImagesUpload } from './ProductDetailImagesUpload';
+
+const formatProductSaveError = (err: unknown): string => {
+  const raw = err instanceof Error ? err.message : String(err || '');
+  const lower = raw.toLowerCase();
+  if (lower.includes('exceeds the maximum allowed size') || lower.includes('longer than') || lower.includes('payload_too_large')) {
+    return 'حجم بيانات وصور المنتج يتجاوز الحد الأقصى المسموح به في Firestore (1 ميجابايت). يحدث ذلك عند تخزين عدة صور مضغوطة داخل قاعدة البيانات لأن Firebase Storage غير مفعل أو محظور. قم بتقليل عدد الصور أو تفعيل قواعد Firebase Storage.';
+  }
+  if (lower.includes('missing or insufficient permissions') || lower.includes('permission_denied') || lower.includes('permission-denied')) {
+    return 'فشل الحفظ: لا تملك صلاحية تعديل المنتجات في Firestore (تحقق من تسجيل الدخول بحساب المشرف).';
+  }
+  if (lower.includes('invalid-argument')) {
+    return 'يوجد حقل غير صالح في بيانات المنتج (تأكد من الأرقام والصور المدخلة).';
+  }
+  return `حدث خطأ أثناء حفظ المنتج: ${raw || 'خطأ غير معروف'}`;
+};
 
 const colorFallbackMap: Record<string, string> = {
   oatmeal: '#E0D4C3',
@@ -240,6 +255,16 @@ export const AdminProducts = () => {
     };
 
     try {
+      const payloadBytes = estimateDocumentBytes(productData);
+      if (payloadBytes > 950000) {
+        const sizeKb = Math.round(payloadBytes / 1024);
+        setError(
+          `حجم المنتج والصور (${sizeKb} KB) يتجاوز الحد الأقصى لوثيقة Firestore (1024 KB) لأن الصور تم حفظها مؤقتاً داخل القاعدة لتعذر الرفع إلى Firebase Storage. قم بحذف بعض الصور أو تفعيل قواعد Firebase Storage في لوحة Firebase.`
+        );
+        setLoading(false);
+        return;
+      }
+
       if (isEditing) {
         await updateProduct(isEditing.id, productData);
       } else {
@@ -250,6 +275,7 @@ export const AdminProducts = () => {
       setIsEditing(null);
     } catch (err) {
       console.error("Error saving product:", err);
+      setError(formatProductSaveError(err));
     } finally {
       setLoading(false);
     }
@@ -297,6 +323,7 @@ export const AdminProducts = () => {
       }
     } catch (err) {
       console.error("Error during deletion execution:", err);
+      setError(formatProductSaveError(err));
     } finally {
       setConfirmDelete(null);
       setLoading(false);
@@ -408,19 +435,20 @@ export const AdminProducts = () => {
   };
 
   const appendTier = () => {
+    setError(null);
     const qty = parseInt(newTierQty);
     const pPrice = parseFloat(newTierPrice);
     if (!qty || qty <= 0) {
-      alert("الرجاء إدخال كمية صحيحة أكبر من 0 / Please enter valid quantity");
+      setError("الرجاء إدخال كمية صحيحة أكبر من 0 / Please enter valid quantity");
       return;
     }
     if (!pPrice || pPrice <= 0) {
-      alert("الرجاء إدخال سعر صحيح أكبر من 0 / Please enter valid price");
+      setError("الرجاء إدخال سعر صحيح أكبر من 0 / Please enter valid price");
       return;
     }
     const exists = formData.flashBundleTiers.some(t => t.quantity === qty);
     if (exists) {
-      alert("هذه الكمية مضافة بالفعل! / This quantity tier is already added!");
+      setError("هذه الكمية مضافة بالفعل! / This quantity tier is already added!");
       return;
     }
     const updated = [...formData.flashBundleTiers, { quantity: qty, bundlePrice: pPrice }]
@@ -457,22 +485,23 @@ export const AdminProducts = () => {
   };
 
   const handleAddNewColorToPool = async () => {
+    setError(null);
     const name = newColorName.trim();
     let code = newColorCode.trim();
 
     if (!name) {
-      alert('Please enter a color name. / يرجى إدخال اسم اللون.');
+      setError('يرجى إدخال اسم اللون. / Please enter a color name.');
       return;
     }
     if (!code) {
-      alert('Please select or specify a HEX code. / يرجى إدخال كود لون HEX.');
+      setError('يرجى إدخال كود لون HEX. / Please select or specify a HEX code.');
       return;
     }
     if (!code.startsWith('#')) {
       code = '#' + code;
     }
     if (!/^#[0-9A-F]{6}$/i.test(code)) {
-      alert('Color code must be a valid 6-character hex. (e.g. #000000)');
+      setError('كود اللون يجب أن يكون بصيغة HEX من 6 خانات (مثال: #000000).');
       return;
     }
 
@@ -494,6 +523,7 @@ export const AdminProducts = () => {
       setNewColorCode('#000000');
     } catch (err) {
       console.error(err);
+      setError(formatProductSaveError(err));
     } finally {
       setLoading(false);
     }
@@ -509,22 +539,23 @@ export const AdminProducts = () => {
 
   const handleSaveEditColor = async () => {
     if (!editingColor) return;
+    setError(null);
     const name = editColorName.trim();
     let code = editColorCode.trim();
 
     if (!name) {
-      alert('Please specify a color name.');
+      setError('يرجى إدخال اسم اللون. / Please specify a color name.');
       return;
     }
     if (!code) {
-      alert('Please specify a HEX code.');
+      setError('يرجى إدخال كود HEX للون. / Please specify a HEX code.');
       return;
     }
     if (!code.startsWith('#')) {
       code = '#' + code;
     }
     if (!/^#[0-9A-F]{6}$/i.test(code)) {
-      alert('Invalid HEX format. e.g. #000000');
+      setError('صيغة كود HEX غير صالحة (مثال: #000000).');
       return;
     }
 
@@ -553,12 +584,13 @@ export const AdminProducts = () => {
       setEditingColor(null);
     } catch (err) {
       console.error(err);
+      setError(formatProductSaveError(err));
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && !products.length) {
+  if (loading && !products.length && !isAdding && !isEditing) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="w-8 h-8 border-2 border-brand-text border-t-transparent rounded-full animate-spin"></div>
@@ -1135,6 +1167,13 @@ export const AdminProducts = () => {
           <Plus size={16} /> Add Product
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200/60 rounded-xl text-red-600 font-semibold text-[13px] flex items-center gap-2" dir="rtl">
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
       
       <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
         <div className="overflow-x-auto">

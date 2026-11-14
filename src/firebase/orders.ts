@@ -52,13 +52,16 @@ export const createOrder = async (orderData: Omit<Order, 'id'>) => {
       if (settingsSnap.exists()) {
         const settingsData = settingsSnap.data();
         if (settingsData && settingsData.enabled) {
-          const bots = settingsData.bots || [];
-          if (bots.length > 0) {
+          const rawBots = Array.isArray(settingsData.bots) ? settingsData.bots : [];
+          const validBots = rawBots.filter(
+            (b: any) => b && typeof b.botToken === 'string' && b.botToken.trim() && typeof b.chatId === 'string' && b.chatId.trim()
+          );
+          if (validBots.length > 0) {
             hasMultipleBots = true;
             const lastIndex = typeof settingsData.lastUsedBotIndex === 'number' ? settingsData.lastUsedBotIndex : -1;
-            nextBotIndex = (lastIndex + 1) % bots.length;
-            const selectedBot = bots[nextBotIndex];
-            assignedBotId = selectedBot.id;
+            nextBotIndex = (Math.max(-1, lastIndex) + 1) % validBots.length;
+            const selectedBot = validBots[nextBotIndex];
+            assignedBotId = selectedBot?.id || '';
           } else if (settingsData.botToken && settingsData.chatId) {
             assignedBotId = 'primary';
           }

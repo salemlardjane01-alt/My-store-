@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { uploadProductImage, deleteProductImageByUrl, getStorageInstance } from '../../firebase';
+import { uploadProductImageDetailed, deleteProductImageByUrl } from '../../firebase';
 import { 
   Upload, Trash2, Star, Loader2, Image as ImageIcon, X, 
-  RotateCw, Check, Plus, ZoomIn, ZoomOut, Move
+  RotateCw, Check, Plus, ZoomIn, ZoomOut, Move, AlertCircle
 } from 'lucide-react';
 
 interface ProductImageUploadProps {
@@ -34,8 +34,11 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
   const [activePendingIdx, setActivePendingIdx] = useState<number | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const pendingImagesRef = useRef<PendingImage[]>([]);
 
   // Drag to pan image state
   const [isDragging, setIsDragging] = useState(false);
@@ -101,16 +104,31 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     editFileInputRef.current?.click();
   };
 
-  // Clean raw ObjectURLs to prevent memory leakage
+  useEffect(() => {
+    pendingImagesRef.current = pendingImages;
+  }, [pendingImages]);
+
+  // Clean raw ObjectURLs only when component unmounts (not on every pendingImages edit)
   useEffect(() => {
     return () => {
-      pendingImages.forEach(img => {
+      pendingImagesRef.current.forEach(img => {
         if (img.previewUrl.startsWith('blob:')) {
           URL.revokeObjectURL(img.previewUrl);
         }
       });
     };
-  }, [pendingImages]);
+  }, []);
+
+  const clearAllPending = () => {
+    pendingImages.forEach(img => {
+      if (img.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(img.previewUrl);
+      }
+    });
+    setPendingImages([]);
+    setActivePendingIdx(null);
+    setShowCancelConfirm(false);
+  };
 
   // Drag and pan handler for desktop/mouse
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -274,30 +292,36 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
   const handleUploadAllPending = async () => {
     if (pendingImages.length === 0) return;
 
+    setUploadError(null);
+    setStorageWarning(null);
     const newUploading = pendingImages.map(f => ({ name: f.originalFile.name, progress: true }));
     setUploadingFiles(prev => [...prev, ...newUploading]);
 
     const queueToProcess = [...pendingImages];
-    // Keep pendingImages intact during processing so the UI remains stable and 
-    // cleanup useEffect is NOT triggered prematurely!
+    // Clear modal immediately? Keep queue visible via uploading state, revoke after processing
     const uploadedUrls: string[] = [];
+    const failedNames: string[] = [];
+    let fallbackReason: string | undefined;
 
     for (const item of queueToProcess) {
       try {
         const processedFile = await processAndCreateBlob(item);
-        const downloadUrl = await uploadProductImage(processedFile);
-        if (downloadUrl) {
-          uploadedUrls.push(downloadUrl);
+        const result = await uploadProductImageDetailed(processedFile);
+        if (result.url) {
+          uploadedUrls.push(result.url);
+        }
+        if (result.usedFallback && !fallbackReason) {
+          fallbackReason = result.errorReason || 'Storage fallback';
         }
       } catch (err) {
         console.error("Failed to process and upload manual edits:", item.originalFile.name, err);
-        alert(`خطأ في رفع الملف المعدل: ${item.originalFile.name}`);
+        failedNames.push(item.originalFile.name);
       } finally {
         setUploadingFiles(prev => prev.filter(f => f.name !== item.originalFile.name));
       }
     }
 
-    // Now, after ALL items are processed, safe to clear pendingImages and revoke blob URLs!
+    // Revoke blob URLs now that processing is finished
     queueToProcess.forEach(item => {
       if (item.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(item.previewUrl);
@@ -306,6 +330,18 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
 
     setPendingImages([]);
     setActivePendingIdx(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (editFileInputRef.current) editFileInputRef.current.value = '';
+
+    if (failedNames.length > 0) {
+      setUploadError(`تعذر معالجة أو رفع الصور التالية: ${failedNames.join('، ')}`);
+    }
+
+    if (fallbackReason) {
+      setStorageWarning(
+        `تنبيه: تعذر الرفع المباشر إلى Firebase Storage (${fallbackReason})، فتم ضغط الصور مؤقتاً داخل قاعدة البيانات. يُنصح بعدم رفع عدد كبير من الصور أو تفعيل قواعد Firebase Storage في لوحة Firebase.`
+      );
+    }
 
     if (uploadedUrls.length > 0) {
       const updatedImages = [...images, ...uploadedUrls];
@@ -450,10 +486,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setPendingImages([]);
-                      setActivePendingIdx(null);
-                    }}
+                    onClick={clearAllPending}
                     className="p-1.5 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"
                   >
                     <X size={18} />
@@ -687,11 +720,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setPendingImages([]);
-                        setActivePendingIdx(null);
-                        setShowCancelConfirm(false);
-                      }}
+                      onClick={clearAllPending}
                       className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[12px] font-medium transition-colors text-center"
                     >
                       نعم، إلغاء الكل
@@ -736,6 +765,20 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-[12px] font-medium flex items-start gap-2" dir="rtl">
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+
+      {storageWarning && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-[11.5px] font-medium flex items-start gap-2" dir="rtl">
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span>{storageWarning}</span>
         </div>
       )}
 

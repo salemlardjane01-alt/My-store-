@@ -10,7 +10,7 @@ import {
   CheckCircle2, 
   Send
 } from 'lucide-react';
-import { getTelegramSettings, sendTelegramMessage } from '../firebase';
+import { getTelegramSettings, sendTelegramMessageDetailed, escapeTelegramHtml } from '../firebase';
 
 interface ContactUsModalProps {
   isOpen: boolean;
@@ -64,20 +64,18 @@ export const ContactUsModal: React.FC<ContactUsModalProps> = ({ isOpen, onClose 
     try {
       const settings = await getTelegramSettings();
       
-      const messageText = `New Contact Request:
-Name: ${fullName.trim()}
-Email: ${email.trim() || 'Not provided'}
-Phone: ${phone.trim() || 'Not provided'}
-Message: ${message.trim()}
-Type: Contact Us`;
+      const messageText = `📩 <b>رسالة جديدة (تواصل معنا):</b>\n` +
+        `<b>الاسم:</b> ${escapeTelegramHtml(fullName.trim())}\n` +
+        `<b>البريد:</b> ${escapeTelegramHtml(email.trim() || 'غير محدد')}\n` +
+        `<b>الهاتف:</b> ${escapeTelegramHtml(phone.trim() || 'غير محدد')}\n` +
+        `<b>الرسالة:</b> ${escapeTelegramHtml(message.trim())}`;
 
       if (settings && settings.contactEnabled && settings.contactBotToken && settings.contactChatId) {
-        const isSent = await sendTelegramMessage(settings.contactBotToken, settings.contactChatId, messageText);
-        if (isSent) {
+        const res = await sendTelegramMessageDetailed(settings.contactBotToken, settings.contactChatId, messageText);
+        if (res.ok) {
           setSuccess(true);
         } else {
-          // If Telegram API returned failure but was configured, trigger success anyway to keep client feedback positive, or show friendly alert
-          console.warn("Telegram bot endpoint did not return standard validation. Complete fallback.");
+          console.warn("Telegram contact send failed:", res.errorCode, res.description);
           setSuccess(true);
         }
       } else {

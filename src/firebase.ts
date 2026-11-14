@@ -61,6 +61,8 @@ import {
   updateProduct, 
   deleteProduct,
   uploadProductImage,
+  uploadProductImageDetailed,
+  estimateDocumentBytes,
   deleteProductImageByUrl
 } from './firebase/products';
 
@@ -74,6 +76,8 @@ export {
   updateProduct, 
   deleteProduct,
   uploadProductImage,
+  uploadProductImageDetailed,
+  estimateDocumentBytes,
   deleteProductImageByUrl
 };
 
@@ -82,6 +86,10 @@ import {
   getTelegramSettings, 
   updateTelegramSettings, 
   sendTelegramMessage, 
+  sendTelegramMessageDetailed,
+  sanitizeBotToken,
+  sanitizeChatId,
+  escapeTelegramHtml,
   sendTelegramNotificationIfNeeded 
 } from './firebase/telegram';
 
@@ -90,6 +98,10 @@ export {
   getTelegramSettings, 
   updateTelegramSettings, 
   sendTelegramMessage, 
+  sendTelegramMessageDetailed,
+  sanitizeBotToken,
+  sanitizeChatId,
+  escapeTelegramHtml,
   sendTelegramNotificationIfNeeded 
 };
 

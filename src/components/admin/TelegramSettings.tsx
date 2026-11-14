@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getTelegramSettings, updateTelegramSettings, sendTelegramMessage } from '../../firebase';
+import {
+  getTelegramSettings,
+  updateTelegramSettings,
+  sendTelegramMessageDetailed,
+  sanitizeBotToken,
+  sanitizeChatId
+} from '../../firebase';
 import { TelegramSettings, TelegramBot } from '../../types';
 import { Loader2, Save, Send, ShieldAlert, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -123,34 +129,78 @@ export const AdminTelegramSettings: React.FC = () => {
       setTestResultContact(null);
       setTestResultBotId({});
 
-      const activeBots = settings.bots || [];
-      if (settings.enabled && activeBots.some(b => !b.botToken || !b.chatId)) {
+      const sanitizedBots = (settings.bots || []).map(b => ({
+        ...b,
+        botToken: sanitizeBotToken(b.botToken),
+        chatId: sanitizeChatId(b.chatId),
+      }));
+
+      const sanitizedContactToken = sanitizeBotToken(settings.contactBotToken);
+      const sanitizedContactChatId = sanitizeChatId(settings.contactChatId);
+
+      // Check for partially filled bots
+      const hasPartialBot = sanitizedBots.some(b => (b.botToken && !b.chatId) || (!b.botToken && b.chatId));
+      if (hasPartialBot) {
+        setError('يرجى إكمال حقل Bot Token و Chat ID معاً لأي بوت قمت بتعبئته.');
+        setSaving(false);
+        return;
+      }
+
+      if (settings.enabled && sanitizedBots.some(b => !b.botToken || !b.chatId)) {
         setError('يرجى ملء حقل Bot Token و Chat ID لجميع البوتات النشطة المضافة.');
         setSaving(false);
         return;
       }
 
-      const firstBot = activeBots[0];
+      if (settings.contactEnabled && (!sanitizedContactToken || !sanitizedContactChatId)) {
+        setError('يرجى ملء حقل Contact Bot Token و Contact Chat ID عند تفعيل إشعارات تواصل معنا.');
+        setSaving(false);
+        return;
+      }
+
+      const validBots = sanitizedBots.filter(b => b.botToken && b.chatId);
+      const firstBot = validBots[0] || sanitizedBots[0];
+      const safeLastIndex =
+        typeof settings.lastUsedBotIndex === 'number' &&
+        settings.lastUsedBotIndex >= 0 &&
+        validBots.length > 0 &&
+        settings.lastUsedBotIndex < validBots.length
+          ? settings.lastUsedBotIndex
+          : 0;
+
       const payload: TelegramSettings = {
         ...settings,
+        bots: sanitizedBots,
         botToken: firstBot?.botToken || '',
         chatId: firstBot?.chatId || '',
+        contactBotToken: sanitizedContactToken,
+        contactChatId: sanitizedContactChatId,
+        lastUsedBotIndex: safeLastIndex,
       };
 
       await updateTelegramSettings(payload);
-      
+      setSettings(payload);
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4500);
     } catch (err) {
       console.error('Error saving Telegram settings:', err);
-      setError('فشل في حفظ إعدادات تليجرام في قاعدة البيانات.');
+      const msg = err instanceof Error ? err.message : '';
+      setError(
+        msg.includes('Missing or insufficient permissions')
+          ? 'فشل الحفظ: لا تملك صلاحية تعديل إعدادات تليجرام في Firestore.'
+          : 'فشل في حفظ إعدادات تليجرام في قاعدة البيانات.'
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleTestBotConnection = async (bot: TelegramBot) => {
-    if (!bot.botToken || !bot.chatId) {
+    const cleanToken = sanitizeBotToken(bot.botToken);
+    const cleanChatId = sanitizeChatId(bot.chatId);
+
+    if (!cleanToken || !cleanChatId) {
       setTestResultBotId(prev => ({
         ...prev,
         [bot.id]: {
@@ -165,13 +215,13 @@ export const AdminTelegramSettings: React.FC = () => {
       setTestingBotId(bot.id);
       setTestResultBotId(prev => ({ ...prev, [bot.id]: null }));
       
-      const testText = `🔌 <b>رسالة تجربة اتصال إشعارات الطلبات (البوت المتعدد)!</b>\n\n` +
-        `✅ تم ربط هذا البوت بنجاح لتلقي الإشعارات في توزيع Round Robin من متجرك.\n` +
+      const testText = `🔌 <b>رسالة تجربة اتصال إشعارات الطلبات!</b>\n\n` +
+        `✅ تم ربط هذا البوت بنجاح لتلقي الإشعارات في متجرك.\n` +
         `⏰ <b>وقت التجربة:</b> ${new Date().toLocaleTimeString('ar-DZ')}`;
 
-      const isOk = await sendTelegramMessage(bot.botToken, bot.chatId, testText);
+      const res = await sendTelegramMessageDetailed(cleanToken, cleanChatId, testText);
       
-      if (isOk) {
+      if (res.ok) {
         setTestResultBotId(prev => ({
           ...prev,
           [bot.id]: {
@@ -180,11 +230,12 @@ export const AdminTelegramSettings: React.FC = () => {
           }
         }));
       } else {
+        const detail = res.description ? ` (${res.description})` : '';
         setTestResultBotId(prev => ({
           ...prev,
           [bot.id]: {
             success: false,
-            message: 'فشل إرسال الرسالة. يرجى التحقق من صحة الـ Bot Token ومعرّف Chat ID.',
+            message: `${res.friendlyMessageAr || 'فشل إرسال الرسالة.'}${detail}`,
           }
         }));
       }
@@ -204,8 +255,8 @@ export const AdminTelegramSettings: React.FC = () => {
 
   const handleTestConnection = async (type: 'order' | 'contact') => {
     if (type !== 'contact') return;
-    const token = settings.contactBotToken;
-    const cid = settings.contactChatId;
+    const token = sanitizeBotToken(settings.contactBotToken);
+    const cid = sanitizeChatId(settings.contactChatId);
 
     if (!token || !cid) {
       setTestResultContact({
@@ -223,17 +274,18 @@ export const AdminTelegramSettings: React.FC = () => {
         `✅ تم ربط البوت بنجاح لتلقي رسائل نموذج تواصل معنا / Contact Us.\n` +
         `⏰ <b>وقت التجربة:</b> ${new Date().toLocaleTimeString('ar-DZ')}`;
 
-      const isOk = await sendTelegramMessage(token, cid, testText);
+      const res = await sendTelegramMessageDetailed(token, cid, testText);
       
-      if (isOk) {
+      if (res.ok) {
         setTestResultContact({
           success: true,
           message: 'تم إرسال رسالة تجريبية بنجاح! يرجى التحقق من تطبيق تليجرام.',
         });
       } else {
+        const detail = res.description ? ` (${res.description})` : '';
         setTestResultContact({
           success: false,
-          message: 'فشل إرسال الرسالة. يرجى التحقق من صحة الـ Bot Token ومعرّف Chat ID.',
+          message: `${res.friendlyMessageAr || 'فشل إرسال الرسالة.'}${detail}`,
         });
       }
     } catch (err) {

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { uploadProductImage, deleteProductImageByUrl, getStorageInstance } from '../../firebase';
-import { Upload, Trash2, ArrowUp, ArrowDown, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { uploadProductImageDetailed, deleteProductImageByUrl } from '../../firebase';
+import { Upload, Trash2, ArrowUp, ArrowDown, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
 interface ProductDetailImagesUploadProps {
   detailImages: string[];
@@ -14,6 +14,8 @@ export const ProductDetailImagesUpload: React.FC<ProductDetailImagesUploadProps>
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -31,19 +33,36 @@ export const ProductDetailImagesUpload: React.FC<ProductDetailImagesUploadProps>
     if (validFiles.length === 0) return;
 
     setUploading(true);
+    setUploadError(null);
+    setStorageWarning(null);
     const uploadedUrls: string[] = [];
+    const failedNames: string[] = [];
+    let fallbackReason: string | undefined;
 
     for (let i = 0; i < validFiles.length; i++) {
       const file = validFiles[i];
       setProgressMsg(`جاري رفع: ${file.name} (${i + 1}/${validFiles.length})`);
       try {
-        const downloadUrl = await uploadProductImage(file);
-        if (downloadUrl) {
-          uploadedUrls.push(downloadUrl);
+        const result = await uploadProductImageDetailed(file);
+        if (result.url) {
+          uploadedUrls.push(result.url);
+        }
+        if (result.usedFallback && !fallbackReason) {
+          fallbackReason = result.errorReason || 'Storage fallback';
         }
       } catch (err) {
         console.error("Error uploading detail image:", file.name, err);
+        failedNames.push(file.name);
       }
+    }
+
+    if (failedNames.length > 0) {
+      setUploadError(`فشل رفع الصور التفصيلية التالية: ${failedNames.join('، ')}`);
+    }
+    if (fallbackReason) {
+      setStorageWarning(
+        `تنبيه: تعذر الرفع إلى Firebase Storage (${fallbackReason})، فتم ضغط الصور مؤقتاً داخل قاعدة البيانات.`
+      );
     }
 
     if (uploadedUrls.length > 0) {
@@ -155,6 +174,20 @@ export const ProductDetailImagesUpload: React.FC<ProductDetailImagesUploadProps>
           <span className="text-[12px] font-medium text-neutral-600 font-sans">
             {progressMsg || 'جاري رفع الصور ومعالجة الملفات...'}
           </span>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-[12px] font-medium flex items-start gap-2" dir="rtl">
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+
+      {storageWarning && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-[11.5px] font-medium flex items-start gap-2" dir="rtl">
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span>{storageWarning}</span>
         </div>
       )}
 
