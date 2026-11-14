@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle, logOut } from '../firebase';
-import { navigateDeviceAware } from '../lib/dynamicRouting';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate?: (view: 'home' | 'checkout' | 'success' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy') => void;
+  onNavigate?: (view: 'home' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy') => void;
   onContactUsOpen?: () => void;
 }
 

@@ -47,24 +47,26 @@ export function getDeviceInfo(): DeviceInfo {
  */
 export function getRouteUrl(type: 'whatsapp' | 'instagram' | 'facebook' | 'telegram' | 'store' | 'track' | 'contact', customValue?: string): string {
   const { isMobile } = getDeviceInfo();
-  const value = customValue || DEFAULT_SOCIAL_CHANNELS[type as keyof typeof DEFAULT_SOCIAL_CHANNELS] || '';
+  const value = customValue !== undefined
+    ? customValue.trim()
+    : (DEFAULT_SOCIAL_CHANNELS[type as keyof typeof DEFAULT_SOCIAL_CHANNELS] || '');
+
+  if (!value && type !== 'track' && type !== 'contact') {
+    return '';
+  }
 
   switch (type) {
     case 'whatsapp': {
-      // Clean phone number: remove any leading +, non-digits
       const phone = value.replace(/\D/g, '');
-      const defaultPhone = phone || '213550000000';
+      if (!phone) return '';
       if (isMobile) {
-        // Direct mobile universal link (opens app automatically on iOS/Android if installed)
-        return `https://wa.me/${defaultPhone}`;
-      } else {
-        // Desktop best behavior (routes to api.whatsapp.com which prompts Desktop client or Whatsapp Web seamlessly)
-        return `https://api.whatsapp.com/send?phone=${defaultPhone}`;
+        return `https://wa.me/${phone}`;
       }
+      return `https://api.whatsapp.com/send?phone=${phone}`;
     }
-    
+
     case 'instagram': {
-      let username = value.trim();
+      let username = value;
       if (username.startsWith('http://') || username.startsWith('https://')) {
         try {
           const urlObj = new URL(username);
@@ -80,26 +82,23 @@ export function getRouteUrl(type: 'whatsapp' | 'instagram' | 'facebook' | 'teleg
         }
       }
       username = username.replace(/^@/, '').trim().split('/')[0].split('?')[0];
-      const { isMobile } = getDeviceInfo();
-      if (isMobile && username) {
-        return `instagram://user?username=${username}`;
-      }
-      return `https://instagram.com/${username}`;
+      return username ? `https://instagram.com/${username}` : '';
     }
 
     case 'facebook': {
-      if (value.startsWith('http')) {
+      if (value.startsWith('http://') || value.startsWith('https://')) {
         return value;
       }
-      return `https://facebook.com/${value}`;
+      const cleanHandle = value.replace(/^@/, '').trim();
+      return cleanHandle ? `https://facebook.com/${cleanHandle}` : '';
     }
 
     case 'telegram': {
-      if (value.startsWith('http')) {
+      if (value.startsWith('http://') || value.startsWith('https://')) {
         return value;
       }
-      // Standard Telegram HTTPS Universal link: t.me
-      return `https://t.me/${value.startsWith('@') ? value.slice(1) : value}`;
+      const cleanHandle = value.replace(/^@/, '').trim();
+      return cleanHandle ? `https://t.me/${cleanHandle}` : '';
     }
 
     case 'store': {

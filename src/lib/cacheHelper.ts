@@ -28,7 +28,8 @@ export function getFromLocalCache<T>(key: string): CacheItem<T> | null {
 
 export const invalidateCache = (key: string): void => {
   try {
-    localStorage.removeItem(key);
+    const storageKey = key.startsWith('lr_store_cache_') ? key : `lr_store_cache_${key}`;
+    localStorage.removeItem(storageKey);
   } catch (e) {}
 };
 

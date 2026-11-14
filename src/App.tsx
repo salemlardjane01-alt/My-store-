@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { ProductCard } from './components/ProductCard';
 import { AuthProvider } from './context/AuthContext';
 import { Product } from './types';
-import { getRouteUrl, navigateDeviceAware, getDeviceInfo } from './lib/dynamicRouting';
+import { getRouteUrl } from './lib/dynamicRouting';
 import { getSocialSettings } from './firebase';
 import { isArabic } from './lib/textHelpers';
 
@@ -362,7 +362,7 @@ const Footer = React.memo(({
   onFaqOpen,
   onContactUsOpen
 }: { 
-  onNavigate: (view: 'home' | 'checkout' | 'success' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy') => void;
+  onNavigate: (view: 'home' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy') => void;
   onShippingRatesOpen: () => void;
   onFaqOpen: () => void;
   onContactUsOpen: () => void;
@@ -430,68 +430,11 @@ const Footer = React.memo(({
     return () => { active = false; };
   }, [!!socials]);
 
-  const formatSocialUrl = (type: string, value: string) => {
-    if (!value) return '';
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-    
-    if (type === 'instagram') {
-      let username = trimmed;
-      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-        try {
-          const urlObj = new URL(trimmed);
-          const segments = urlObj.pathname.split('/').filter(Boolean);
-          if (segments.length > 0) {
-            username = segments[0];
-          }
-        } catch (e) {
-          const parts = trimmed.split('instagram.com/');
-          if (parts.length > 1) {
-            username = parts[1].split('/')[0].split('?')[0];
-          }
-        }
-      }
-      username = username.replace(/^@/, '').trim().split('/')[0].split('?')[0];
-      const { isMobile } = getDeviceInfo();
-      if (isMobile && username) {
-        return `instagram://user?username=${username}`;
-      }
-      return `https://instagram.com/${username}`;
-    }
-
-    if (type === 'whatsapp') {
-      const cleanDigits = trimmed.replace(/\D/g, '');
-      return cleanDigits ? `https://wa.me/${cleanDigits}` : '';
-    }
-
-    if (type === 'facebook') {
-      let fbUrl = trimmed;
-      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
-        fbUrl = `https://facebook.com/${trimmed}`;
-      }
-      const { isMobile } = getDeviceInfo();
-      if (isMobile) {
-        return `fb://facewebmodal/f?href=${encodeURIComponent(fbUrl)}`;
-      }
-      return fbUrl;
-    }
-    
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    
-    if (type === 'telegram') {
-      return `https://t.me/${trimmed.replace(/^@/, '')}`;
-    }
-    
-    return trimmed;
-  };
-
   const activeSocials = socials ? [
-    { type: 'instagram', icon: Instagram, url: formatSocialUrl('instagram', socials.instagram || ''), hoverBg: 'hover:bg-[#E1306C] hover:border-[#E1306C]' },
-    { type: 'whatsapp', isWhatsapp: true, url: formatSocialUrl('whatsapp', socials.whatsapp || ''), hoverBg: 'hover:bg-[#25D366] hover:border-[#25D366]' },
-    { type: 'facebook', icon: Facebook, url: formatSocialUrl('facebook', socials.facebook || ''), hoverBg: 'hover:bg-[#1877F2] hover:border-[#1877F2]' },
-    { type: 'telegram', isTelegram: true, url: formatSocialUrl('telegram', socials.telegram || ''), hoverBg: 'hover:bg-[#0088cc] hover:border-[#0088cc]' }
+    { type: 'instagram', icon: Instagram, url: getRouteUrl('instagram', socials.instagram || ''), hoverBg: 'hover:bg-[#E1306C] hover:border-[#E1306C]' },
+    { type: 'whatsapp', isWhatsapp: true, url: getRouteUrl('whatsapp', socials.whatsapp || ''), hoverBg: 'hover:bg-[#25D366] hover:border-[#25D366]' },
+    { type: 'facebook', icon: Facebook, url: getRouteUrl('facebook', socials.facebook || ''), hoverBg: 'hover:bg-[#1877F2] hover:border-[#1877F2]' },
+    { type: 'telegram', isTelegram: true, url: getRouteUrl('telegram', socials.telegram || ''), hoverBg: 'hover:bg-[#0088cc] hover:border-[#0088cc]' }
   ].filter(item => item.url) : [];
 
   return (
@@ -656,13 +599,20 @@ export default function App() {
 
   const { initialView, initialProductId } = getInitialStateFromURL();
 
-  const [view, setView] = React.useState<'home' | 'checkout' | 'success' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy'>(initialView);
+  const [view, setView] = React.useState<'home' | 'admin' | 'details' | 'thank-you' | 'products' | 'terms' | 'privacy'>(initialView);
   const [selectedProductId, setSelectedProductId] = React.useState<string | null>(initialProductId);
   const [selectedCategoryId, setSelectedCategoryId] = React.useState<string>('all');
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isShippingOpen, setIsShippingOpen] = React.useState(false);
   const [isFaqOpen, setIsFaqOpen] = React.useState(false);
-  const [confirmedOrder, setConfirmedOrder] = React.useState<{ productName: string; totalPrice: number; phoneNumber: string } | null>(null);
+  const [confirmedOrder, setConfirmedOrder] = React.useState<{ productName: string; totalPrice: number; phoneNumber: string } | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('lr_store_last_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isContactOpen, setIsContactOpen] = React.useState(false);
 
   // Synchronize state with URL on browser back/forward navigation
@@ -840,6 +790,9 @@ export default function App() {
                   productId={selectedProductId} 
                   onBack={() => setView('home')} 
                   onOrderSuccess={(orderInfo) => {
+                    try {
+                      sessionStorage.setItem('lr_store_last_order', JSON.stringify(orderInfo));
+                    } catch {}
                     setConfirmedOrder(orderInfo);
                     setView('thank-you');
                   }}
@@ -847,12 +800,12 @@ export default function App() {
               </React.Suspense>
             )}
 
-            {view === 'thank-you' && confirmedOrder && (
+            {view === 'thank-you' && (
               <React.Suspense fallback={<div className="flex-1 flex items-center justify-center py-20 bg-brand-bg text-[13px] text-neutral-400">Loading...</div>}>
                 <ThankYou 
-                  productName={confirmedOrder.productName} 
-                  totalPrice={confirmedOrder.totalPrice} 
-                  phone={confirmedOrder.phoneNumber} 
+                  productName={confirmedOrder?.productName} 
+                  totalPrice={confirmedOrder?.totalPrice} 
+                  phone={confirmedOrder?.phoneNumber} 
                   onContinue={() => setView('home')} 
                 />
               </React.Suspense>

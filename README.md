@@ -1,20 +1,14 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# LR Store
 
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/7f8bdd66-906e-4b6f-afca-1573b66ed46b
+A modern, mobile-first e-commerce storefront and admin dashboard built with React, Vite, Tailwind CSS, and Firebase.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js 22+
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Configure environment variables (optional if using `firebase-applet-config.json`):
+   Copy `.env.example` to `.env` and fill in your Firebase `VITE_FIREBASE_*` values.
+3. Run the development server:
    `npm run dev`

@@ -45,7 +45,7 @@ export const ThankYou: React.FC<ThankYouProps> = ({ productName, totalPrice, pho
 
           <div className="flex justify-between items-center text-[13px] text-neutral-700 leading-tight" dir="rtl">
             <span className="text-neutral-400 font-sans">المنتج:</span>
-            <span className="font-medium truncate max-w-[180px] font-sans text-left" dir="auto">{productName || 'Veg Garment'}</span>
+            <span className="font-medium truncate max-w-[180px] font-sans text-left" dir="auto">{productName || 'طلب من LR Store'}</span>
           </div>
 
           {phone && (
@@ -62,10 +62,12 @@ export const ThankYou: React.FC<ThankYouProps> = ({ productName, totalPrice, pho
             </span>
           </div>
 
-          <div className="flex justify-between items-center text-[14px] text-brand-text font-bold border-t border-dashed border-neutral-200 pt-2.5 mt-1" dir="rtl">
-            <span className="font-sans">السعر الإجمالي:</span>
-            <PriceDisplay amount={totalPrice || 0} className="font-serif inline-flex gap-1 text-left" />
-          </div>
+          {typeof totalPrice === 'number' && totalPrice > 0 && (
+            <div className="flex justify-between items-center text-[14px] text-brand-text font-bold border-t border-dashed border-neutral-200 pt-2.5 mt-1" dir="rtl">
+              <span className="font-sans">السعر الإجمالي:</span>
+              <PriceDisplay amount={totalPrice} className="font-serif inline-flex gap-1 text-left" />
+            </div>
+          )}
         </div>
 
         {/* Continue Button */}
