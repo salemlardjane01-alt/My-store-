@@ -140,7 +140,7 @@ export const updateSocialSettings = async (settingsData: any) => {
   }
 };
 
-export const uploadHeroImage = (file: File): Promise<string> => uploadImage(file, 'heroes', 20000);
+export const uploadHeroImage = (file: File): Promise<string> => uploadImage(file, 'heroes', 6000);
 
 export const getDeliveryProvidersSettings = async (forceFresh = false) => {
   try {

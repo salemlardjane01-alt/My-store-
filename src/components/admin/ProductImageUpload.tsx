@@ -94,6 +94,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     if (e.target.files && e.target.files[0]) {
       queueFilesForEditing(e.target.files);
     }
+    e.target.value = '';
   };
 
   const triggerInputClick = () => {
@@ -262,7 +263,8 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           // Produce compressed, high-quality, lightweight file
           canvas.toBlob((blob) => {
             if (blob) {
-              const finalIndexedFile = new File([blob], pendingImg.originalFile.name, {
+              const baseName = pendingImg.originalFile.name.replace(/\.[^/.]+$/, '') || 'product_image';
+              const finalIndexedFile = new File([blob], `${baseName}.jpg`, {
                 type: 'image/jpeg',
                 lastModified: Date.now()
               });
@@ -270,18 +272,18 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
             } else {
               resolve(pendingImg.originalFile);
             }
-          }, 'image/jpeg', 0.88);
+          }, 'image/jpeg', 0.85);
         };
 
-        img.onerror = (err) => {
-          reject(err);
+        img.onerror = () => {
+          reject(new Error('تعذر قراءة الصورة أو صيغتها غير مدعومة في المتصفح'));
         };
 
         img.src = e.target?.result as string;
       };
 
-      reader.onerror = (err) => {
-        reject(err);
+      reader.onerror = () => {
+        reject(new Error('فشل قراءة ملف الصورة من الجهاز'));
       };
 
       reader.readAsDataURL(pendingImg.originalFile);
@@ -290,7 +292,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
 
   // Process manual edits and upload final files to Firebase Storage
   const handleUploadAllPending = async () => {
-    if (pendingImages.length === 0) return;
+    if (pendingImages.length === 0 || uploadingFiles.length > 0) return;
 
     setUploadError(null);
     setStorageWarning(null);
@@ -648,7 +650,10 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                       multiple
                       accept="image/*"
                       onChange={(e) => {
-                        if (e.target.files) queueFilesForEditing(e.target.files);
+                        if (e.target.files && e.target.files.length > 0) {
+                          queueFilesForEditing(e.target.files);
+                        }
+                        e.target.value = '';
                       }}
                     />
                   </div>
@@ -737,11 +742,21 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                 )}
                 <button
                   type="button"
+                  disabled={uploadingFiles.length > 0}
                   onClick={handleUploadAllPending}
-                  className="flex-2 py-3 bg-brand-text hover:bg-neutral-800 text-white rounded-xl text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-brand-text/10"
+                  className="flex-2 py-3 bg-brand-text hover:bg-neutral-800 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-brand-text/10"
                 >
-                  <Check size={16} />
-                  وزن ورفع الصور ({pendingImages.length})
+                  {uploadingFiles.length > 0 ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>جاري معالجة ورفع الصور...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} />
+                      <span>وزن ورفع الصور ({pendingImages.length})</span>
+                    </>
+                  )}
                 </button>
               </div>
 

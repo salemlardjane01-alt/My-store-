@@ -294,9 +294,9 @@ export const uploadImage = async (file: File, folder: string, timeoutMs: number)
 };
 
 export const uploadProductImageDetailed = (file: File): Promise<ImageUploadResult> =>
-  uploadImageDetailed(file, 'products', 20000);
+  uploadImageDetailed(file, 'products', 6000);
 
-export const uploadProductImage = (file: File): Promise<string> => uploadImage(file, 'products', 20000);
+export const uploadProductImage = (file: File): Promise<string> => uploadImage(file, 'products', 6000);
 
 export const deleteProductImageByUrl = async (url: string): Promise<void> => {
   if (!url) return;

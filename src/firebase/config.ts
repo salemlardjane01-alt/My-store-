@@ -55,6 +55,8 @@ let _storageInstance: ReturnType<typeof getStorage> | null = null;
 export const getStorageInstance = () => {
   if (!_storageInstance) {
     _storageInstance = getStorage(app);
+    _storageInstance.maxUploadRetryTime = 5000;
+    _storageInstance.maxOperationRetryTime = 5000;
   }
   return _storageInstance;
 };
