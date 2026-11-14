@@ -25,31 +25,42 @@ const firebaseConfig = {
   measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || appletConfig.measurementId || ''
 };
 
+const firestoreDatabaseId = env.VITE_FIREBASE_DATABASE_ID || appletConfig.firestoreDatabaseId || '(default)';
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 let dbInstance;
 try {
-  dbInstance = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager(),
-    }),
-    experimentalForceLongPolling: true,
-  });
+  dbInstance = initializeFirestore(
+    app,
+    {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+      experimentalForceLongPolling: true,
+    },
+    firestoreDatabaseId
+  );
 } catch (e) {
   console.warn("Firestore persistent local cache initialization failed, falling back to long-polling without persistent multiple tab manager.", e);
   try {
-    dbInstance = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-    });
+    dbInstance = initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+      },
+      firestoreDatabaseId
+    );
   } catch (err) {
     console.error("Firestore initialization failed completely.", err);
     // Fallback to basic getFirestore
-    dbInstance = getFirestore(app);
+    dbInstance = getFirestore(app, firestoreDatabaseId);
   }
 }
 
 const db = dbInstance;
+export const FIRESTORE_DATABASE_ID = firestoreDatabaseId;
 
 let _storageInstance: ReturnType<typeof getStorage> | null = null;
 export const getStorageInstance = () => {

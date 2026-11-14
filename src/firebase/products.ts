@@ -194,15 +194,17 @@ export const estimateDocumentBytes = (data: unknown): number => {
   }
 };
 
+let storageSkipUntil = 0;
+let lastStorageSkipReason = '';
+
 const compressImageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxW = 640;
-        const maxH = 800;
+        const maxW = 600;
+        const maxH = 750;
         let width = img.width;
         let height = img.height;
 
@@ -215,26 +217,32 @@ const compressImageToBase64 = (file: File): Promise<string> => {
           height = maxH;
         }
 
-        canvas.width = width;
-        canvas.height = height;
+        const renderAtSize = (w: number, h: number, quality: number): string => {
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return (event.target?.result as string) || '';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          return canvas.toDataURL('image/jpeg', quality);
+        };
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve((event.target?.result as string) || '');
-          return;
-        }
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Adaptive JPEG compression so Base64 fallback stays under ~160KB per image
-        let quality = 0.68;
-        let compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        while (compressedBase64.length > 180000 && quality > 0.35) {
+        // Adaptive JPEG compression so Base64 fallback stays under ~90KB per image
+        let quality = 0.65;
+        let compressedBase64 = renderAtSize(width, height, quality);
+        while (compressedBase64.length > 90000 && quality > 0.35) {
           quality = Number((quality - 0.1).toFixed(2));
-          compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          compressedBase64 = renderAtSize(width, height, quality);
         }
+
+        if (compressedBase64.length > 95000 && width > 400) {
+          width = Math.round(width * 0.78);
+          height = Math.round(height * 0.78);
+          compressedBase64 = renderAtSize(width, height, 0.5);
+        }
+
         resolve(compressedBase64);
       };
       img.onerror = () => {
@@ -254,6 +262,15 @@ export const uploadImageDetailed = async (
   folder: string,
   timeoutMs: number
 ): Promise<ImageUploadResult> => {
+  if (Date.now() < storageSkipUntil) {
+    const compressed = await compressImageToBase64(file);
+    return {
+      url: compressed,
+      usedFallback: true,
+      errorReason: lastStorageSkipReason || 'Firebase Storage unavailable',
+    };
+  }
+
   const uploadPromise = (async () => {
     const fileExtension = file.name.split('.').pop() || 'jpg';
     const randomId = Math.random().toString(36).substring(2, 10);
@@ -271,10 +288,21 @@ export const uploadImageDetailed = async (
 
   try {
     const url = await Promise.race([uploadPromise, timeoutPromise]);
+    storageSkipUntil = 0;
+    lastStorageSkipReason = '';
     return { url, usedFallback: false };
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     console.warn('Storage upload failed or timed out. Falling back to compressed client-side Base64...', reason);
+    if (
+      reason.includes('retry-limit-exceeded') ||
+      reason.includes('Timeout') ||
+      reason.includes('bucket-not-found') ||
+      reason.includes('unauthorized')
+    ) {
+      storageSkipUntil = Date.now() + 60000;
+      lastStorageSkipReason = reason;
+    }
     try {
       const compressed = await compressImageToBase64(file);
       if (compressed) {

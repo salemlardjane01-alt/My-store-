@@ -61,7 +61,7 @@ export const ProductDetailImagesUpload: React.FC<ProductDetailImagesUploadProps>
     }
     if (fallbackReason) {
       setStorageWarning(
-        `تنبيه: تعذر الرفع إلى Firebase Storage (${fallbackReason})، فتم ضغط الصور مؤقتاً داخل قاعدة البيانات.`
+        `تم تجهيز الصور التفصيلية وإرفاقها عبر الضغط الذكي داخل قاعدة البيانات (Firebase Storage غير مفعّل بعد: ${fallbackReason}). يمكنك حفظ المنتج بشكل طبيعي.`
       );
     }
 

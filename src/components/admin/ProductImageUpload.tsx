@@ -341,7 +341,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
 
     if (fallbackReason) {
       setStorageWarning(
-        `تنبيه: تعذر الرفع المباشر إلى Firebase Storage (${fallbackReason})، فتم ضغط الصور مؤقتاً داخل قاعدة البيانات. يُنصح بعدم رفع عدد كبير من الصور أو تفعيل قواعد Firebase Storage في لوحة Firebase.`
+        `تم تجهيز الصور وإرفاقها بنجاح عبر الضغط الذكي داخل قاعدة البيانات (لأن خدمة Firebase Storage غير مفعلة بعد في مشروع Firebase: ${fallbackReason}). يمكنك إكمال حفظ المنتج الآن بشكل طبيعي، أو تفعيل Storage في لوحة Firebase إذا أردت تخزيناً سحابياً خارجياً.`
       );
     }
 

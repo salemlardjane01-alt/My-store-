@@ -1,9 +1,12 @@
 {
+  "projectId": "lr-store-6d326",
+  "appId": "1:434359085021:web:a9f941cd7ea25a0d2d3834",
   "apiKey": "AIzaSyBzPPWC-K52ztbkpPZRuPlBqGHsgwfTmUM",
   "authDomain": "lr-store-6d326.firebaseapp.com",
-  "projectId": "lr-store-6d326",
+  "firestoreDatabaseId": "lr-store",
   "storageBucket": "lr-store-6d326.firebasestorage.app",
   "messagingSenderId": "434359085021",
-  "appId": "1:434359085021:web:a9f941cd7ea25a0d2d3834",
-  "measurementId": "G-NC4SNDGN5V"
+  "measurementId": "G-NC4SNDGN5V",
+  "oAuthClientId": "434359085021-9cc2e8v3r0hp5s7s0hkah8c56hquapem.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
