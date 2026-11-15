@@ -8,7 +8,7 @@ interface PrivacyPageProps {
 export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
   useEffect(() => {
     // Elegant SEO Title
-    document.title = "Privacy Policy - سياسة الخصوصية | LR Store";
+    document.title = "Privacy Policy - سياسة الخصوصية | LR Shop";
     
     // Smooth scroll to top on mount
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -27,12 +27,12 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
         </button>
         <div>
           <h1 className="text-xl font-bold text-brand-text">Privacy Policy</h1>
-          <p className="text-[12px] text-neutral-400">سياسة الخصوصية وحماية البيانات لـ LR Store</p>
+          <p className="text-[12px] text-neutral-400">سياسة الخصوصية وحماية البيانات لـ LR Shop</p>
         </div>
       </div>
 
       {/* SEO metadata emulation */}
-      <meta name="description" content="سياسة الخصوصية وسرية حماية البيانات الشخصية لزبائن متجر LR Store الإلكتروني في الجزائر. نتعرف على كيفية جمع واستخدام وتأمين معلوماتكم الشخصية." />
+      <meta name="description" content="سياسة الخصوصية وسرية حماية البيانات الشخصية لزبائن متجر LR Shop الإلكتروني في الجزائر. نتعرف على كيفية جمع واستخدام وتأمين معلوماتكم الشخصية." />
 
       {/* Legal Content */}
       <div className="space-y-8 text-right bg-white rounded-3xl border border-neutral-100 p-6 md:p-8 shadow-xs">
@@ -53,7 +53,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <span>1. البيانات التي نقوم بجمعها</span>
           </h3>
           <p className="text-[13px] text-neutral-600 leading-relaxed">
-            عند تفاعلكم مع متجر LR Store أو تقديم طلب شراء لمنتج ما، فإننا نقوم بجمع معلومات شخصية أساسية ومحددة لدقة التوصيل، وتشمل:
+            عند تفاعلكم مع متجر LR Shop أو تقديم طلب شراء لمنتج ما، فإننا نقوم بجمع معلومات شخصية أساسية ومحددة لدقة التوصيل، وتشمل:
           </p>
           <ul className="list-disc list-inside text-[13px] text-neutral-600 space-y-1.5 pr-4">
             <li><strong>الاسم الكامل:</strong> للتعريف بالهوية الصحيحة للمستلم عند التسليم.</li>
@@ -76,7 +76,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <li>معالجة طلبات الشراء، تحضير الطرود وتغليفها بشكل احترافي.</li>
             <li>تمكين فريق خدمة العملاء لدينا من الاتصال الهاتفي لطلب تأكيد الرغبة في الشراء لتفادي الطرود المهجورة.</li>
             <li>إمكانية إبلاغكم بأي مستجدات قد تطرأ على عملية الشحن أو حالة المخزون.</li>
-            <li>توفير وتحسين تجربة التسوق والتصفح الإجمالية وتطوير واجهة متجر LR Store.</li>
+            <li>توفير وتحسين تجربة التسوق والتصفح الإجمالية وتطوير واجهة متجر LR Shop.</li>
           </ul>
         </div>
 
@@ -87,7 +87,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <span>3. سرية البيانات ومشاركتها مع أطراف خارجية</span>
           </h3>
           <p className="text-[13px] text-neutral-600 leading-relaxed">
-            خصوصيتكم هي من أهم أولوياتنا المباشرة في LR Store. نحن مجبرون ومسؤولون قانونياً على <strong>عدم بيع، تأجير، أو مشاركة معلوماتكم الشخصية</strong> مع أي جهة ترويجية أو إعلانية خارجية بهدف الربح أو الاستغلال.
+            خصوصيتكم هي من أهم أولوياتنا المباشرة في LR Shop. نحن مجبرون ومسؤولون قانونياً على <strong>عدم بيع، تأجير، أو مشاركة معلوماتكم الشخصية</strong> مع أي جهة ترويجية أو إعلانية خارجية بهدف الربح أو الاستغلال.
             إن مشاركة جزء مميز ومحدد من بياناتكم (الاسم، العنوان الكامل، رقم الهاتف) تتم حصرياً وبشكل قسري ومبرر مع <strong>شركات التوصيل والشحن المتعاقد معها</strong> في الجزائر لتمكينهم من الوصول إليكم مباشرة وتسليمكم طلبياتكم والدفع نقداً عند الاستلام.
           </p>
         </div>
@@ -131,7 +131,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
         <div className="border-t border-neutral-100 pt-5 space-y-2">
           <h3 className="text-[14px] font-bold text-brand-text">لديك استفسار بخصوص سياسة الخصوصية؟</h3>
           <p className="text-[13px] text-neutral-500 leading-relaxed">
-            أنتم تملكون كامل الصلاحية ولكم مطلق الحرية في التواصل مع إدارة حماية البيانات وسرية العملاء لـ LR Store عبر حسابات الدعم الخاصة بنا والمنشورة في أسفل الموقع أو من خلال وسيلة الاتصال السريع.
+            أنتم تملكون كامل الصلاحية ولكم مطلق الحرية في التواصل مع إدارة حماية البيانات وسرية العملاء لـ LR Shop عبر حسابات الدعم الخاصة بنا والمنشورة في أسفل الموقع أو من خلال وسيلة الاتصال السريع.
           </p>
         </div>
 

@@ -45,7 +45,7 @@ export const ThankYou: React.FC<ThankYouProps> = ({ productName, totalPrice, pho
 
           <div className="flex justify-between items-center text-[13px] text-neutral-700 leading-tight" dir="rtl">
             <span className="text-neutral-400 font-sans">المنتج:</span>
-            <span className="font-medium truncate max-w-[180px] font-sans text-left" dir="auto">{productName || 'طلب من LR Store'}</span>
+            <span className="font-medium truncate max-w-[180px] font-sans text-left" dir="auto">{productName || 'طلب من LR Shop'}</span>
           </div>
 
           {phone && (

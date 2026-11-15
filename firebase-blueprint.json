@@ -140,7 +140,7 @@
     },
     "products/{productId}": {
       "schema": "Product",
-      "description": "Available products offered on LR Store"
+      "description": "Available products offered on LR Shop"
     },
     "categories/{categoryId}": {
       "schema": "Category",

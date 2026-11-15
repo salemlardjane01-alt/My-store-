@@ -1,4 +1,4 @@
-# LR Store
+# LR Shop
 
 A modern, mobile-first e-commerce storefront and admin dashboard built with React, Vite, Tailwind CSS, and Firebase.
 

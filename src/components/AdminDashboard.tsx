@@ -66,7 +66,7 @@ export const AdminDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => 
       <aside className={`fixed inset-y-0 left-0 bg-white border-r border-neutral-200/60 w-64 flex flex-col z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 flex items-center justify-between border-b border-neutral-100">
           <div className="flex flex-col">
-             <span className="font-serif italic text-2xl tracking-tight text-brand-text leading-none">LR Store</span>
+             <span className="font-serif italic text-2xl tracking-tight text-brand-text leading-none">LR Shop</span>
              <span className="text-[11px] font-medium tracking-widest text-neutral-400 uppercase mt-1">Admin Panel</span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="p-1 -mr-1 lg:hidden text-neutral-500 hover:text-brand-text">

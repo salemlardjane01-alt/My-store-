@@ -144,7 +144,7 @@ export const ContactUsModal: React.FC<ContactUsModalProps> = ({ isOpen, onClose 
                 <div className="text-center mb-6">
                   <h4 className="text-lg font-extrabold text-neutral-900">سعداء بتواصلك دائمًا</h4>
                   <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed max-w-sm mx-auto">
-                    يرجى تعبئة النموذج أدناه وستصل رسالتك فورياً إلى فريق الدعم LR Store وسيتم الرد بأسرع وقت.
+                    يرجى تعبئة النموذج أدناه وستصل رسالتك فورياً إلى فريق الدعم LR Shop وسيتم الرد بأسرع وقت.
                   </p>
                 </div>
 
@@ -266,7 +266,7 @@ export const ContactUsModal: React.FC<ContactUsModalProps> = ({ isOpen, onClose 
                 <div className="space-y-2">
                   <h4 className="text-xl font-extrabold text-neutral-900">تم ارسال الرسالة بنجاح</h4>
                   <p className="text-xs text-neutral-500 max-w-xs mx-auto leading-relaxed">
-                    شكراً لتواصلك معنا! في LR Store نركز على رضا عملائنا، تم تحويل الرسالة بنجاح وسنتواصل معك في أقرب وقت.
+                    شكراً لتواصلك معنا! في LR Shop نركز على رضا عملائنا، تم تحويل الرسالة بنجاح وسنتواصل معك في أقرب وقت.
                   </p>
                 </div>
                 <div className="pt-4">
