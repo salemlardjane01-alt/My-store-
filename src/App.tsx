@@ -25,7 +25,7 @@ const Header = ({ onMenuClick, onSearchClick }: { onMenuClick: () => void; onSea
       <button aria-label="Menu" className="text-brand-text" onClick={onMenuClick}>
         <Menu strokeWidth={1.5} size={20} />
       </button>
-      <h1 className="font-serif italic text-2xl tracking-tight translate-x-2">LR Shop</h1>
+      <h1 className="font-serif italic text-2xl tracking-tight translate-x-2">LR Store</h1>
       <div className="flex items-center gap-4">
         <button aria-label="Search" className="text-brand-text" onClick={onSearchClick}>
           <Search strokeWidth={1.5} size={20} />
@@ -440,7 +440,7 @@ const Footer = React.memo(({
   return (
     <footer ref={footerRef} className="bg-brand-footer text-white px-6 pt-8 pb-5 rounded-t-3xl sm:rounded-none mt-auto">
       <div className="max-w-md mx-auto">
-        <h2 className="font-serif italic text-3xl mb-2">LR Shop</h2>
+        <h2 className="font-serif italic text-3xl mb-2">LR Store</h2>
         <p className="text-neutral-400 text-[14px] sm:text-[15px] leading-relaxed mb-6 text-right" dir="rtl">
           جودة متميزة وأسعار منافسة تجعل تسوقك متعة حقيقية.
         </p>
@@ -530,7 +530,7 @@ const Footer = React.memo(({
 
         <div className="border-t border-neutral-800 pt-4 flex flex-col gap-4 text-right" dir="rtl">
           <p className="text-[10px] tracking-[0.15em] text-neutral-500 uppercase">
-            © 2026 LR Shop - جميع الحقوق محفوظة
+            © 2026 LR Store - جميع الحقوق محفوظة
           </p>
           <div className="flex gap-4 justify-start">
             {activeSocials.map((item, idx) => (

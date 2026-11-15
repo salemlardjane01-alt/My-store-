@@ -6,9 +6,9 @@
 
 export const DEFAULT_SOCIAL_CHANNELS = {
   whatsapp: '213550000000', // Algerian WhatsApp Country Prefix + Phone Number template
-  instagram: 'lrshop',       // Instagram profile handle (or complete HTTPS link)
-  facebook: 'lrshop.dz',     // Facebook page identification
-  telegram: 'lrshop_dz',     // Telegram channel reference handle
+  instagram: 'lrstore',      // Instagram profile handle (or complete HTTPS link)
+  facebook: 'lrstore.dz',    // Facebook page identification
+  telegram: 'lrstore_dz',    // Telegram channel reference handle
 };
 
 export interface DeviceInfo {

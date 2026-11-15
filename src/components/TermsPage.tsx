@@ -8,7 +8,7 @@ interface TermsPageProps {
 export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
   useEffect(() => {
     // Elegant SEO Title
-    document.title = "Terms of Service - شروط الاستخدام | LR Shop";
+    document.title = "Terms of Service - شروط الاستخدام | LR Store";
     
     // Smooth scroll to top on mount
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -27,12 +27,12 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
         </button>
         <div>
           <h1 className="text-xl font-bold text-brand-text">Terms of Service</h1>
-          <p className="text-[12px] text-neutral-400">شروط واستخدام الخدمة لمتجر LR Shop</p>
+          <p className="text-[12px] text-neutral-400">شروط واستخدام الخدمة لمتجر LR Store</p>
         </div>
       </div>
 
       {/* SEO metadata emulation */}
-      <meta name="description" content="اتفاقية شروط الخدمة والاستخدام الخاصة بمتجر LR Shop الإلكتروني في الجزائر. يرجى قراءة الشروط بعناية قبل شراء أي منتج من منصتنا." />
+      <meta name="description" content="اتفاقية شروط الخدمة والاستخدام الخاصة بمتجر LR Store الإلكتروني في الجزائر. يرجى قراءة الشروط بعناية قبل شراء أي منتج من منصتنا." />
 
       {/* Legal Content */}
       <div className="space-y-8 text-right bg-white rounded-3xl border border-neutral-100 p-6 md:p-8 shadow-xs">
@@ -53,7 +53,7 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             <span>1. مقدمة عامة</span>
           </h3>
           <p className="text-[13px] text-neutral-600 leading-relaxed">
-            مرحباً بكم في متجر <strong>LR Shop</strong> الإلكتروني. يسري استخدامكم للموقع وكافة الخدمات والمنتجات المعروضة فيه بموجب هذه الاتفاقية. عند تصفحكم للموقع أو تقديم طلب شراء، فإنكم توافقون ضمنياً وبشكل كامل على شروط الخدمة الموضحة أدناه. إذا كنتم لا توافقون على هذه البنود، يرجى التوقف عن استخدام المنصة.
+            مرحباً بكم في متجر <strong>LR Store</strong> الإلكتروني. يسري استخدامكم للموقع وكافة الخدمات والمنتجات المعروضة فيه بموجب هذه الاتفاقية. عند تصفحكم للموقع أو تقديم طلب شراء، فإنكم توافقون ضمنياً وبشكل كامل على شروط الخدمة الموضحة أدناه. إذا كنتم لا توافقون على هذه البنود، يرجى التوقف عن استخدام المنصة.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             <span>4. آلية إنشاء وتأكيد الطلبات</span>
           </h3>
           <p className="text-[13px] text-neutral-600 leading-relaxed">
-            بعد تعبئة نموذج الطلب وإرساله عبر الموقع، يتلقى العميل إشعاراً باستلام الطلب. يعتبر الطلب أولياً وغير نهائي حتى يتم إجراء اتصال هاتفي أو إرسال رسالة لتأكيد الطلب من قبل قسم خدمة العملاء الخاص بـ LR Shop.
+            بعد تعبئة نموذج الطلب وإرساله عبر الموقع، يتلقى العميل إشعاراً باستلام الطلب. يعتبر الطلب أولياً وغير نهائي حتى يتم إجراء اتصال هاتفي أو إرسال رسالة لتأكيد الطلب من قبل قسم خدمة العملاء الخاص بـ LR Store.
             نحتفظ بطلبك معلقاً حتى تأكيده هاتفياً. في حال عدم الرد على مكالمات التأكيد المتكررة خلال 48 ساعة، سيتم إلغاء الطلب تلقائياً لضمان توفير المنتجات للمشترين الجادين الأخرين.
           </p>
         </div>
@@ -122,7 +122,7 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
             <span>7. معالجة الطلبات الوهمية والمشبوهة</span>
           </h3>
           <p className="text-[13px] text-neutral-600 leading-relaxed">
-            بهدف حماية أعمالنا وضمان استمرارية الخدمة بأعلى جودة، يحتفظ متجر LR Shop بالحق الكامل في رفض، تجميد أو إلغاء أي طلب شراء يثبت أو يُشتبه أنه وهمي، غير جاد، أو يحتوي على بيانات تالفة أو احتيالية.
+            بهدف حماية أعمالنا وضمان استمرارية الخدمة بأعلى جودة، يحتفظ متجر LR Store بالحق الكامل في رفض، تجميد أو إلغاء أي طلب شراء يثبت أو يُشتبه أنه وهمي، غير جاد، أو يحتوي على بيانات تالفة أو احتيالية.
             قد نقوم بحظر أرقام الهواتف أو العناوين التي تكرر تقديم طلبات وهمية أو ترفض استلام الطرود المؤكدة دون عذر مسبق مقبول.
           </p>
         </div>
@@ -143,7 +143,7 @@ export const TermsPage: React.FC<TermsPageProps> = ({ onBack }) => {
         <div className="border-t border-neutral-100 pt-5 space-y-2">
           <h3 className="text-[14px] font-bold text-brand-text">هل لديك أي استفسار قانوني؟</h3>
           <p className="text-[13px] text-neutral-500 leading-relaxed">
-            إذا كان لديكم أي أسئلة أو بحاجة لشروحات بخصوص شروط الخدمة الخاصة بنا، يسعدنا تواصلكم المباشر مع فريق الدعم الفني وخدمة عملاء LR Shop عبر حساباتنا.
+            إذا كان لديكم أي أسئلة أو بحاجة لشروحات بخصوص شروط الخدمة الخاصة بنا، يسعدنا تواصلكم المباشر مع فريق الدعم الفني وخدمة عملاء LR Store عبر حساباتنا.
           </p>
         </div>
 
